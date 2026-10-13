@@ -1,0 +1,57 @@
+name: OKX Screener
+
+on:
+  schedule:
+    - cron: "10 * * * *"   # every hour at :10 UTC; the 00:10 UTC run (08:10 PHT) does the daily rebuild
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "auto = decide from data; daily = force full rebuild; hourly = live overlay only"
+        type: choice
+        options: [auto, daily, hourly]
+        default: auto
+
+permissions:
+  contents: write
+
+concurrency:
+  group: okx-screener
+  cancel-in-progress: false
+
+jobs:
+  screener:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Unit tests
+        run: pytest -q
+
+      - name: Run screener
+        env:
+          DISCORD_WEBHOOK_SCREENER: ${{ secrets.DISCORD_WEBHOOK_SCREENER }}
+          DISCORD_WEBHOOK_STATUS: ${{ secrets.DISCORD_WEBHOOK_STATUS }}
+          OKX_BASE_URL: ${{ vars.OKX_BASE_URL || 'https://www.okx.com' }}
+        run: python -m screener --mode ${{ inputs.mode || 'auto' }}
+
+      - name: Commit refreshed data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --staged --quiet; then
+            echo "No data changes"
+          else
+            git commit -m "data: screener refresh $(date -u +'%Y-%m-%d %H:%M') UTC"
+            git pull --rebase
+            git push
+          fi
