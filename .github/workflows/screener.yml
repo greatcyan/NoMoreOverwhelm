@@ -2,17 +2,13 @@ name: OKX Screener
 
 on:
   schedule:
-    - cron: "10 * * * *"   # every hour at :10 UTC; the 00:10 UTC run (08:10 PHT) does the daily rebuild
-  workflow_dispatch:
-    inputs:
-      mode:
-        description: "auto = decide from data; daily = force full rebuild; hourly = live overlay only"
-        type: choice
-        options: [auto, daily, hourly]
-        default: auto
+    # Every 4 hours at :10 -> 8:10 AM, 12:10 PM, 4:10 PM, 8:10 PM, 12:10 AM, 4:10 AM (Manila time).
+    # For hourly instead, change to: "10 * * * *"
+    - cron: "10 */4 * * *"
+  workflow_dispatch:   # adds the manual "Run workflow" button
 
 permissions:
-  contents: write
+  contents: write      # lets the run save the CSVs back into the repo
 
 concurrency:
   group: okx-screener
@@ -21,27 +17,22 @@ concurrency:
 jobs:
   screener:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45   # deep-history scan of ~485 pairs can take 10-20 min under OKX's rate limit
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Unit tests
-        run: pytest -q
+        run: pip install requests pandas
 
       - name: Run screener
         env:
-          DISCORD_WEBHOOK_SCREENER: ${{ secrets.DISCORD_WEBHOOK_SCREENER }}
-          DISCORD_WEBHOOK_STATUS: ${{ secrets.DISCORD_WEBHOOK_STATUS }}
-          OKX_BASE_URL: ${{ vars.OKX_BASE_URL || 'https://www.okx.com' }}
-        run: python -m screener --mode ${{ inputs.mode || 'auto' }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_SCREENER }}
+          DISCORD_MENTION: ${{ vars.DISCORD_MENTION }}
+        run: python okx_screener.py --output-dir data
 
       - name: Commit refreshed data
         run: |
