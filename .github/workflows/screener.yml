@@ -32,7 +32,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_SCREENER }}
           DISCORD_MENTION: ${{ vars.DISCORD_MENTION }}
-        run: python okx_screener.py --output-dir data
+        run: python okx_screener.py --output-dir data --ath-max-history-pages 1
 
       - name: Commit refreshed data
         run: |
