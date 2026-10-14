@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>
+  try { var t = localStorage.getItem("scr-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OKX MA100 Screener</title>
-<meta name="description" content="OKX USDT perpetual swap screener: MA100 demarcation (D1/H4/H1), RSI, and 3M/6M/52W break-of-structure watchlist. Refreshed every 4 hours.">
+<title>My Trading Partner</title>
+<meta name="description" content="OKX MA100 demarcation screener with a trade planner, pre-trade checklist, daily target tracker and trading playbook.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -99,6 +102,14 @@ header.top .sub { color: var(--text-secondary); font-size: 13px; margin-top: 4px
   padding: 7px 12px; cursor: pointer; font-size: 13px; color: var(--text-secondary);
 }
 .btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+.sitenav { position: sticky; top: 0; z-index: 30; display: flex; gap: 2px; align-items: center; overflow-x: auto; scrollbar-width: none;
+  background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px); margin: 0 -16px 14px; padding: 6px 16px; border-bottom: 1px solid var(--border); }
+.sitenav::-webkit-scrollbar { display: none; }
+.sitenav button { background: none; border: 0; padding: 8px 12px; border-radius: 8px; cursor: pointer; color: var(--text-secondary); font-weight: 500; white-space: nowrap; }
+.sitenav button:hover { color: var(--text-primary); background: var(--surface-2); }
+.sitenav button[aria-current="page"] { color: var(--text-primary); background: var(--surface-1); box-shadow: inset 0 -2px 0 var(--accent); }
+.sitenav .count { color: var(--text-muted); margin-left: 5px; font-weight: 400; }
+.sitenav .sep { width: 1px; height: 18px; background: var(--border); margin: 0 6px; flex: none; }
 .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; background: var(--good); }
 .status-dot.stale { background: #fab219; }
 .status-dot.err { background: var(--critical); }
@@ -238,8 +249,214 @@ tr.sel td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .pc-rr b { font-family: "JetBrains Mono", monospace; color: var(--text-primary); }
 .pc textarea { width: 100%; min-height: 58px; resize: vertical; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); font: 12px/1.45 Inter, system-ui, sans-serif; color: var(--text-primary); }
 .pc-foot { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
+.pc.pr-high { border-left: 3px solid var(--critical); }
+.pc.pr-medium { border-left: 3px solid var(--accent); }
+.pc.pr-low { border-left: 3px solid var(--border); }
+.pc-go { margin-left: auto; background: none; border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; font-size: 11px; cursor: pointer; color: var(--text-secondary); }
+.pc-go:hover { border-color: var(--accent); color: var(--text-primary); }
+.pc-foot select + select { margin-left: 6px; }
+.pc-foot select:first-child { margin-left: 0; }
 .pc-foot select { margin-left: auto; padding: 3px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface-2); font-size: 11px; }
 @media (max-width: 560px) { .board { grid-template-columns: repeat(5, 82vw); } .pl-bar .hint { margin-left: 0; } }
+
+/* ---------- My Trading Partner (scoped; its palette mapped onto the dashboard tokens) ---------- */
+.mtp {
+  --card-bg: var(--surface-1); --text: var(--text-primary); --muted: var(--text-secondary);
+  --muted2: var(--text-muted); --muted3: var(--text-muted); --rationale-text: var(--text-secondary);
+  --input-bg: var(--surface-2); --input-text: var(--text-primary);
+  --highlight-bg: color-mix(in srgb, #eda100 13%, var(--surface-1));
+  --navy: var(--accent); --navy-text: var(--text-primary); --steel: var(--text-secondary);
+  --green: var(--good-text); --greenbg: color-mix(in srgb, var(--good) 13%, var(--surface-1));
+  --red: var(--critical-text); --redbg: color-mix(in srgb, var(--critical) 11%, var(--surface-1));
+  --light: var(--surface-2);
+  max-width: 880px; margin: 0 auto; font-size: 14px;
+}
+.mtp { color: var(--text-primary); }
+.mtp header { text-align: center; margin-bottom: 20px; }
+.mtp header h1 { color: var(--navy-text); font-size: 1.5rem; margin: 0 0 4px; }
+.mtp header .sub { color: var(--steel); font-style: italic; font-size: 0.9rem; }
+.mtp .banner {
+    position: sticky; top: 0; z-index: 50; text-align: center; padding: 14px;
+    border-radius: 10px; font-weight: 700; font-size: 1.15rem; margin-bottom: 18px;
+    border: 2px solid transparent; transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+.mtp .banner.go { background: var(--greenbg); color: var(--green); border-color: var(--green); }
+.mtp .banner.no { background: var(--redbg); color: var(--red); border-color: var(--red); }
+.mtp .banner .reason { display:block; font-weight: 400; font-size: 0.85rem; margin-top: 4px; }
+.mtp .stage {
+    background: var(--card-bg); border: 1px solid var(--border); border-left: 6px solid var(--steel);
+    border-radius: 8px; padding: 16px 18px; margin-bottom: 14px;
+  }
+.mtp .stage.pass { border-left-color: var(--green); }
+.mtp .stage.fail { border-left-color: var(--red); }
+.mtp .stage.info { border-left-color: var(--muted2); }
+.mtp .stage h2 {
+    font-size: 1.02rem; color: var(--navy-text); margin: 0 0 10px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+.mtp .stage h3 { font-size: 0.9rem; color: var(--steel); margin: 12px 0 4px; }
+.mtp .stage h2 .tag { font-size: 0.7rem; padding: 2px 9px; border-radius: 999px; font-weight: 700; }
+.mtp .tag.pass { background: var(--greenbg); color: var(--green); }
+.mtp .tag.fail { background: var(--redbg); color: var(--red); }
+.mtp .tag.info { background: var(--light); color: var(--muted); }
+.mtp label.item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 0.92rem; cursor: pointer; }
+.mtp label.item input[type=checkbox] { margin-top: 3px; width: 16px; height: 16px; }
+.mtp .note { color: var(--steel); font-size: 0.8rem; font-style: italic; }
+.mtp .rationale { background: var(--light); border-radius: 6px; padding: 8px 10px; font-size: 0.82rem; color: var(--rationale-text); margin: 6px 0 10px; }
+.mtp .links { font-size: 0.82rem; margin: 4px 0 10px 24px; }
+.mtp .links a { color: var(--steel); margin-right: 12px; }
+.mtp .rule {
+    background: var(--redbg); border-radius: 6px; padding: 8px 10px; margin: 8px 0;
+  }
+.mtp .rule .badge {
+    display: inline-block; background: var(--red); color: #fff; font-size: 0.65rem;
+    font-weight: 800; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 4px; margin-right: 8px;
+  }
+.mtp .rule .txt { color: var(--red); font-weight: 700; font-size: 0.85rem; }
+.mtp .rule.neutral { background: var(--light); }
+.mtp .rule.neutral .badge { background: var(--steel); }
+.mtp .rule.neutral .txt { color: var(--steel); }
+.mtp .rule.important { background: var(--highlight-bg); border: 1px solid var(--navy-text); }
+.mtp .rule.important .badge { background: var(--navy); color: #fff; }
+.mtp .rule.important .txt { color: var(--navy-text); }
+.mtp select, .mtp input[type=text], .mtp input[type=number], .mtp textarea {
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px;
+    font-size: 0.9rem; width: 100%; max-width: 260px; margin-top: 4px; font-family: inherit;
+    background: var(--input-bg); color: var(--input-text);
+  }
+.mtp textarea { max-width: 100%; min-height: 70px; resize: vertical; }
+.mtp .row { display: flex; flex-wrap: wrap; gap: 16px; margin: 8px 0; }
+.mtp .field { flex: 1; min-width: 150px; }
+.mtp .field.wide { max-width: none; }
+.mtp .field label { display:block; font-size: 0.82rem; color: var(--navy-text); font-weight: 600; margin-bottom: 2px; }
+.mtp .subblock { margin: 6px 0 10px 24px; padding: 8px 10px; background: var(--light); border-radius: 6px; }
+.mtp .tier-result { margin-top: 8px; padding: 8px 10px; border-radius: 6px; font-weight: 700; font-size: 0.9rem; }
+.mtp .tier-result.good { background: var(--greenbg); color: var(--green); }
+.mtp .tier-result.bad { background: var(--redbg); color: var(--red); }
+.mtp .tier-result.neutral { background: var(--light); color: var(--steel); }
+.mtp .calc-result { margin-top: 10px; padding: 10px 12px; border-radius: 6px; font-weight: 700; font-size: 0.95rem; }
+.mtp .calc-result.ok { background: var(--greenbg); color: var(--green); }
+.mtp .calc-result.bad { background: var(--redbg); color: var(--red); }
+.mtp .calc-result.neutral { background: var(--light); color: var(--steel); }
+.mtp table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+.mtp th, .mtp td { border: 1px solid var(--border); padding: 6px 7px; text-align: center; }
+.mtp th { background: var(--navy); color: #fff; font-size: 0.72rem; }
+.mtp td:first-child, .mtp th:first-child { text-align: left; }
+.mtp tr.custom-lev td { background: var(--highlight-bg); font-weight: 700; }
+.mtp tr.safe td.status { color: var(--green); font-weight: 700; }
+.mtp tr.unsafe td.status { color: var(--red); font-weight: 700; }
+.mtp button.primary { background: var(--navy); color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-size: 0.88rem; cursor: pointer; margin-top: 8px; }
+.mtp button.primary:hover { background: var(--steel); }
+.mtp button.primary:disabled, .mtp button.secondary:disabled {
+    background: var(--light); color: var(--muted2); border-color: var(--border);
+    cursor: not-allowed; opacity: 0.7;
+  }
+.mtp button.primary:disabled:hover { background: var(--light); }
+.mtp button.secondary { background: var(--card-bg); color: var(--navy-text); border: 1px solid var(--navy-text); border-radius: 6px; padding: 8px 16px; font-size: 0.85rem; cursor: pointer; margin-top: 8px; margin-left: 8px; }
+.mtp .mantra { text-align: center; background: var(--navy); color: #fff; border-radius: 10px; padding: 22px 16px; margin: 22px 0; }
+.mtp .mantra p { font-style: italic; font-weight: 700; font-size: 1.05rem; margin: 8px 0; }
+.mtp .trader-rules-header {
+    text-align: center; font-weight: 800; letter-spacing: 0.06em; color: var(--navy-text);
+    font-size: 1rem; margin: 26px 0 10px; padding-top: 10px; border-top: 3px solid var(--navy-text);
+  }
+.mtp .wisdom-quote {
+    background: var(--card-bg); border-left: 5px solid var(--steel); border-radius: 4px;
+    padding: 10px 14px; margin: 10px 0; font-style: italic; color: var(--navy-text); font-size: 0.9rem;
+  }
+.mtp footer { text-align: center; color: var(--muted2); font-size: 0.75rem; margin-top: 30px; }
+.mtp .privacy-note { font-size: 0.78rem; color: var(--muted3); font-style: italic; margin-top: 6px; }
+.mtp .reset-btn-top {
+    
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--card-bg); color: var(--navy-text); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 10px; font-size: 0.68rem; font-weight: 600; cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15); transition: border-color 0.15s, color 0.15s, transform 0.1s;
+  }
+.mtp .reset-btn-top:hover { border-color: var(--steel); color: var(--steel); }
+.mtp .reset-btn-top:active { transform: scale(0.96); }
+.mtp .reset-btn-bottom-wrap { text-align: left; }
+.mtp .tabnav { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 2px solid var(--border); }
+.mtp .tab-btn {
+    background: none; border: none; border-bottom: 3px solid transparent;
+    color: var(--muted); font-weight: 700; font-size: 0.92rem; padding: 9px 6px 8px;
+    cursor: pointer; margin-bottom: -2px; transition: color 0.15s, border-color 0.15s;
+  }
+.mtp .tab-btn.active { color: var(--navy-text); border-bottom-color: var(--navy-text); }
+.mtp .tab-btn:hover { color: var(--steel); }
+.mtp .quicklinks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px; }
+.mtp .quicklinks a {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--card-bg); border: 1px solid var(--border); color: var(--navy-text);
+    border-radius: 999px; padding: 6px 14px; font-size: 0.8rem; font-weight: 600;
+    text-decoration: none; transition: border-color 0.15s, color 0.15s;
+  }
+.mtp .quicklinks a:hover { border-color: var(--steel); color: var(--steel); }
+.mtp .psych-img-wrap { margin: 10px 0 6px; }
+.mtp .psych-img-wrap svg { width: 100%; height: auto; display: block; border: 1px solid var(--border); border-radius: 8px; background: var(--light); }
+.mtp .watchlist-board { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+.mtp .watchlist-col {
+    flex: 1 1 220px; min-width: 220px; background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px;
+  }
+.mtp .watchlist-col h3 {
+    margin: 0 0 8px; font-size: 0.85rem; color: var(--navy-text);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+.mtp .watchlist-card {
+    background: var(--light); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px;
+    border-left: 4px solid var(--steel);
+  }
+.mtp .watchlist-card.prio-high { border-left-color: var(--red); }
+.mtp .watchlist-card.prio-medium { border-left-color: var(--navy-text); }
+.mtp .watchlist-card.prio-low { border-left-color: var(--muted2); }
+.mtp .wc-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.mtp .wc-crypto { font-weight: 700; font-size: 0.92rem; color: var(--text); }
+.mtp .wc-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+.mtp .wc-badge.prio-high { background: var(--redbg); color: var(--red); }
+.mtp .wc-badge.prio-medium { background: var(--highlight-bg); color: var(--navy-text); }
+.mtp .wc-badge.prio-low { background: var(--light); color: var(--muted); }
+.mtp .wc-notes { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+.mtp .wc-controls { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
+.mtp .wc-controls select { max-width: 130px; font-size: 0.76rem; padding: 3px 5px; margin-top: 0; }
+.mtp .wc-remove {
+    background: none; border: 1px solid var(--red); color: var(--red); border-radius: 6px;
+    font-size: 0.72rem; padding: 3px 8px; cursor: pointer;
+  }
+.mtp .wc-remove:hover { background: var(--redbg); }
+.mtp .watchlist-empty { font-size: 0.8rem; color: var(--muted2); font-style: italic; padding: 6px 2px; }
+/* alignment with the dashboard look */
+.mtp .stage { border-radius: 12px; box-shadow: var(--shadow); }
+.mtp .stage h2 { font-size: 15px; font-weight: 600; letter-spacing: -.005em; }
+.mtp .stage h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.mtp header { text-align: left; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.mtp header h1 { font-size: 20px; font-weight: 700; letter-spacing: -.01em; color: var(--text-primary); }
+.mtp header .sub { font-style: normal; color: var(--text-secondary); font-size: 13px; }
+.mtp .rule .badge { background: var(--critical); }
+.mtp .rule.neutral .badge { background: var(--text-muted); }
+.mtp .rule.important { border-color: color-mix(in srgb, #eda100 45%, transparent); }
+.mtp .rule.important .badge { background: #c98500; }
+.mtp .rule.important .txt, .mtp .rule.neutral .txt { color: var(--text-primary); font-weight: 500; }
+.mtp table th { background: var(--surface-2); color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+.mtp table td, .mtp table th { border-color: var(--border); }
+.mtp button.primary { background: var(--accent); border-radius: 8px; font-weight: 500; }
+.mtp button.primary:hover { background: var(--accent); filter: brightness(1.12); }
+.mtp button.secondary { background: var(--surface-1); color: var(--text-primary); border-color: var(--border); border-radius: 8px; }
+.mtp button.secondary:hover { border-color: var(--text-muted); }
+.mtp a, .mtp .links a { color: var(--accent); }
+.mtp select, .mtp input[type=text], .mtp input[type=number], .mtp input[type=date], .mtp textarea { border-radius: 8px; }
+.mtp #tradePlanPreview { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace !important; }
+.mtp .trader-rules-header { border-top-color: var(--border); color: var(--text-secondary); font-size: 12px; }
+.mtp .mantra { border-radius: 12px; }
+.mtp .wisdom-quote { border-left-color: var(--accent); color: var(--text-primary); }
+.mtp .banner { top: 52px; }
+/* screener hints inside the checklist */
+.scr-hint { margin: 8px 0 4px; padding: 8px 10px; border-radius: 8px; font-size: 12.5px; line-height: 1.5;
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface-1)); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); color: var(--text-secondary); }
+.scr-hint:empty { display: none; }
+.scr-hint b { color: var(--text-primary); }
+.scr-hint .mono { color: var(--text-primary); }
+.scr-hint button { margin: 6px 6px 0 0 !important; padding: 4px 10px !important; font-size: 12px !important; }
+
 footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-height: 1.6; }
 .banner { padding: 12px 16px; margin-bottom: 12px; border-left: 3px solid var(--critical); }
 .loading { padding: 40px; text-align: center; color: var(--text-muted); }
@@ -255,18 +472,36 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>OKX MA100 Demarcation Screener</h1>
+      <h1>My Trading Partner</h1>
       <div class="sub" id="subline"><span class="status-dot" id="dot"></span><span id="refreshed">Loading data…</span></div>
     </div>
     <div class="top-actions">
+      <a class="btn" href="https://www.tradingview.com/chart/X5PVFgzb/" target="_blank" rel="noopener">TradingView ↗</a>
+      <a class="btn" href="https://www.okx.com/trade-swap" target="_blank" rel="noopener">OKX Trade ↗</a>
+      <a class="btn" href="https://coinmarketcap.com/" target="_blank" rel="noopener">CoinMarketCap ↗</a>
+      <button class="btn" id="backupBtn" type="button" title="Download all your planner, checklist and target data">Back up</button>
+      <button class="btn" id="restoreBtn" type="button" title="Load a backup file">Restore</button>
+      <input type="file" id="restoreFile" accept="application/json" hidden>
       <a class="btn" id="csvLink" href="#" download>Download CSV</a>
       <button class="btn" id="reload" type="button">Refresh</button>
       <button class="btn" id="theme" type="button" aria-label="Toggle light/dark theme">Theme</button>
     </div>
   </header>
 
-  <div id="banner"></div>
+  <nav class="sitenav" id="sitenav" aria-label="Sections">
+    <button type="button" data-sec="screener">Screener</button>
+    <button type="button" data-sec="planner">Planner<span class="count" id="cPlanNav"></span></button>
+    <span class="sep" aria-hidden="true"></span>
+    <button type="button" data-sec="checklist">Checklist</button>
+    <button type="button" data-sec="dailytarget">Daily Target</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button type="button" data-sec="psychology">Psychology</button>
+    <button type="button" data-sec="chartguide">Chart Analysis</button>
+    <button type="button" data-sec="setups">Setups</button>
+  </nav>
+  <div id="alertBox"></div>
 
+  <div id="secScreener">
   <section class="kpis" id="kpis" aria-label="Summary"></section>
 
   <section class="card filters" aria-label="Filters">
@@ -300,29 +535,2033 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" data-tab="watch">Watchlist<span class="count" id="cWatch"></span></button>
       <button class="tab" role="tab" aria-selected="false" data-tab="all">All instruments<span class="count" id="cAll"></span></button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="plan">Planner<span class="count" id="cPlan"></span></button>
       <div class="tab-tools"><input type="search" id="search" placeholder="Search coin…" aria-label="Search coin"></div>
     </div>
     <div id="panelWatch" class="groups"><div class="loading">Loading…</div></div>
     <div id="panelAll" class="tbl-wrap" hidden></div>
-    <div id="panelPlan" hidden>
+  </section>
+
+  <footer class="note" id="notes"></footer>
+  </div><!-- /secScreener -->
+
+  <section class="card" id="secPlanner" hidden aria-label="Planner">
+    <div id="panelPlan">
       <div class="pl-bar">
         <input type="text" id="plAdd" list="plTokens" placeholder="Add token, e.g. SOL" aria-label="Token to add to planner">
         <datalist id="plTokens"></datalist>
         <button class="btn" id="plAddBtn" type="button">+ Add card</button>
-        <button class="btn" id="plExport" type="button">Export</button>
-        <button class="btn" id="plImportBtn" type="button">Import</button>
-        <input type="file" id="plImport" accept="application/json" hidden>
-        <span class="hint">Drag cards between columns · notes save automatically in this browser</span>
+        <span class="hint">Drag cards between columns · <b>Checklist →</b> sends a card's entry/stop/target to the pre-trade checklist</span>
       </div>
       <div class="board" id="board"></div>
     </div>
   </section>
 
-  <footer class="note" id="notes"></footer>
+<div class="mtp" id="secMtp" hidden>
+
+  <div id="tabChecklist" class="tab-panel">
+  <header><div>
+    <h1>PERSONAL TRADING CHECKLIST</h1>
+    <div class="sub">Weekly Bias &middot; Daily Trend &middot; 1H/4H Execution</div></div><button class="reset-btn-top" onclick="resetChecklist()" type="button" title="Reset checklist for new trade">&#8635; Reset</button>
+  </header>
+
+  <div id="banner" class="banner no">CHECKING...</div>
+
+  <div class="rule important" style="margin-top:10px;">
+    <span class="badge">SESSION TIMES (PH TIME)</span>
+    <span class="txt">
+      Crypto trades 24/7, but volume/volatility still tracks the traditional FX session clock — useful for timing entries and expecting chop vs. movement. Approximate, in Philippine Time (UTC+8):<br>
+      &bull; <strong>Asian (Tokyo) session:</strong> 8:00 AM &ndash; 5:00 PM PHT<br>
+      &bull; <strong>London session:</strong> 4:00 PM &ndash; 1:00 AM PHT<br>
+      &bull; <strong>New York session:</strong> 9:00 PM &ndash; 6:00 AM PHT<br>
+      &bull; <strong>London/NY overlap (highest volatility):</strong> 9:00 PM &ndash; 1:00 AM PHT<br>
+      Note: US/UK daylight saving shifts these by &plusmn;1 hour a few times a year; the Philippines does not observe DST.
+    </span>
+  </div>
+
+  <div class="trader-rules-header">— TRADER RULES —</div>
+  <div class="stage info">
+    <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">Every stage in this checklist runs in order, every single time — no skipping ahead because "I already know it's good."</span></div>
+    <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">Follow the checklist until it becomes a habit. Discipline now is what buys freedom from this checklist later.</span></div>
+  </div>
+
+  <!-- DAILY KILL SWITCH -->
+  <div class="stage" id="killSwitchStage">
+    <h2>Daily Kill Switch <span class="tag info" id="killTag">ACTIVE</span></h2>
+    <div class="row">
+      <div class="field">
+        <label>Wins today</label>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+          <button class="secondary" onclick="adjustCount('wins',-1)">&minus;</button>
+          <span id="winsCount" style="font-weight:700;font-size:1.15rem;min-width:20px;text-align:center;">0</span>
+          <button class="secondary" onclick="adjustCount('wins',1)">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Losses today</label>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+          <button class="secondary" onclick="adjustCount('losses',-1)">&minus;</button>
+          <span id="lossesCount" style="font-weight:700;font-size:1.15rem;min-width:20px;text-align:center;">0</span>
+          <button class="secondary" onclick="adjustCount('losses',1)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">2 losses today OR 2 wins today — done trading for the day. No exceptions, no "one more."</span></div>
+    <p class="note">Just a count, not a log — resets automatically at the start of a new day.</p>
+  </div>
+
+  <!-- STAGE 1 -->
+  <div class="stage" id="stage1">
+    <h2>Stage 1 — Personal Readiness <span class="tag" id="tag1">PENDING</span></h2>
+    <div class="row">
+      <div class="field">
+        <label>Current emotion</label>
+        <select id="emotion">
+          <option value="">Select...</option>
+          <option value="good">Calm / Neutral</option>
+          <option value="bad">Angry / Revenge / Euphoric / FOMO / Panic</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Hours slept last night</label>
+        <input type="number" id="sleep" min="0" max="14" step="0.5" placeholder="e.g. 7">
+      </div>
+    </div>
+    <p class="note">Rule: emotion must be Calm/Neutral AND sleep &ge; 6 hours.</p>
+
+    <h3>Market Preparation</h3>
+    <label class="item"><input type="checkbox" id="newsCheck"> Checked for major news/economic releases today (FOMC, CPI, large token unlocks)</label>
+    <div class="links">
+      Quick links:
+      <a href="https://www.forexfactory.com/calendar" target="_blank">Forex Factory Economic Calendar</a>
+      <a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" target="_blank">FOMC Meeting Calendar</a>
+    </div>
+
+    <label class="item"><input type="checkbox" id="volCheck"> Assessed overall crypto market volatility / BTC dominance</label>
+    <div class="rationale">
+      <strong>Why this matters:</strong>
+      <ul style="margin:6px 0 8px 18px; padding:0;">
+        <li><strong>BTC dominance falling</strong> — this can mean one of two different things, and BTC.D alone doesn't tell you which: (1) capital rotating INTO altcoins, which is bullish for alt setups, or (2) capital rotating INTO stablecoins like USDT/USDC while leaving BTC, which is NOT the same as money moving into alts. Check stablecoin dominance (USDT.D) too before assuming it's altcoin season.</li>
+        <li><strong>BTC dominance rising</strong> — capital rotating back into BTC; altcoins tend to underperform or bleed even when their own charts look fine.</li>
+        <li><strong>High volatility</strong> — wider stops needed, smaller position size, to keep the same dollar risk.</li>
+        <li><strong>Low volatility</strong> — tighter, more precise setups, often a squeeze building toward a bigger move.</li>
+      </ul>
+      Skipping this check means trading altcoins blind to the tide they're actually swimming in.
+      <div class="links" style="margin-left:0;">
+        <a href="https://www.blockchaincenter.net/altcoin-season-index/" target="_blank">Altcoin Season Index (BlockchainCenter.net)</a>
+      </div>
+    </div>
+
+    <h3>Final Readiness</h3>
+    <label class="item"><input type="checkbox" id="workDone"> No pending/extra tasks left at work today</label>
+    <label class="item"><input type="checkbox" id="prayerDone"> Prayer done</label>
+    <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">Do not trade without prayer done first.</span></div>
+  </div>
+
+  <!-- STAGE 2 -->
+  <div class="stage" id="stage2">
+    <h2>Stage 2 — Mother Token (BTC) Bias <span class="tag" id="tag2">PENDING</span></h2>
+    <div class="field">
+      <label>BTC condition today</label>
+      <select id="btcBias">
+        <option value="">Select...</option>
+        <option value="AOTS">AOTS</option>
+        <option value="iAOTS">iAOTS</option>
+        <option value="ZS">ZS</option>
+        <option value="iZS">iZS</option>
+        <option value="Sideways">Sideways</option>
+      </select>
+    </div>
+    <div class="scr-hint" id="hintBtc"></div>
+
+    <div class="field" style="margin-top:10px;">
+      <label>BTC RSI Zone</label>
+      <select id="btcRSIZone">
+        <option value="">Select...</option>
+        <option value="Zone 1">Zone 1 (RSI &lt; 30)</option>
+        <option value="Zone 2">Zone 2 (30 &ndash; 50)</option>
+        <option value="Zone 3">Zone 3 (50 &ndash; 70)</option>
+        <option value="Zone 4">Zone 4 (RSI &ge; 70)</option>
+      </select>
+    </div>
+    <p class="note">Record-only — doesn't gate GO/NO-TRADE.</p>
+
+    <h3>Current BTC Move (Daily)</h3>
+    <div class="rationale">
+      <strong>Before selecting:</strong> pull up BTC's actual daily chart. Compare today's price directly against yesterday's candle — don't rely on a gut feeling of "up" or "down." A move that merely pokes above yesterday's high intraday but closes back inside the range is NOT bullish; wait for the close before you label it.
+    </div>
+    <div class="field">
+      <select id="btcMoveDaily">
+        <option value="">Select...</option>
+        <option value="bullish">Bullish</option>
+        <option value="bearish">Bearish</option>
+        <option value="sideways">Sideways</option>
+        <option value="others">Others (please specify)</option>
+      </select>
+    </div>
+    <div class="rationale">
+      <strong>Bullish</strong> — trading above the previous day's high. Trade with confidence.<br>
+      <strong>Bearish</strong> — continuing down, breaking below the previous day's close. No trade — this fails the checklist.<br>
+      <strong>Sideways</strong> — trading within the prior range, no break either way. Still allowed, but be extra careful.
+    </div>
+    <div id="btcMoveOtherWrap" style="display:none;">
+      <input type="text" id="btcMoveOther" placeholder="Please specify...">
+    </div>
+    <div class="rule" id="btcMoveCaution" style="display:none;"><span class="badge">CAUTION</span><span class="txt" id="btcMoveCautionTxt"></span></div>
+    <div class="rule" id="btcMoveBearishFail" style="display:none;"><span class="badge">NO TRADE</span><span class="txt">BTC is bearish on the daily — this fails Stage 2. Wait for a better BTC condition.</span></div>
+
+    <h3>Where Price Sits in Its Current Box (DB Position)</h3>
+    <p class="note">Record-only — doesn't gate GO/NO-TRADE. This is about WHERE inside the current Darvas box BTC is trading right now, not the daily move above. Maps to which Entry Type (Stage 5) is in play.</p>
+    <div class="field">
+      <select id="btcBoxPosition">
+        <option value="">Select...</option>
+        <option value="belowDB50">Below DB50</option>
+        <option value="crossDB50">Cross DB50</option>
+        <option value="aboveDB50">Above DB50</option>
+      </select>
+    </div>
+    <div class="rationale">
+      <strong>Below DB50</strong> — opportunities for E1 entries (support of Darvas Box Bottom), but beware of possible breakdown.<br>
+      <strong>Cross DB50</strong> — opportunities for E2 entries (DB50 break, retest, or held).<br>
+      <strong>Above DB50</strong> — look for a mini Darvas box or buy on a breakout of Box Top — E3 opportunities.
+    </div>
+    <div class="rule" id="btcBoxNote" style="display:none;"><span class="badge" id="btcBoxBadge"></span><span class="txt" id="btcBoxNoteTxt"></span></div>
+  </div>
+
+  <!-- STAGE 3: TOKEN & TRADE OBJECTIVE -->
+  <div class="stage" id="stage3">
+    <h2>Stage 3 — Token &amp; Trade Objective <span class="tag" id="tag3">PENDING</span></h2>
+    <div class="row">
+      <div class="field"><label>Token name</label><input type="text" id="tokenName" placeholder="e.g. ETH" list="plTokens" autocomplete="off"></div>
+      <div class="field">
+        <label>Market Cap Tier</label>
+        <select id="capTier">
+          <option value="">Select...</option>
+          <option value="Blue Chip">Blue Chip</option>
+          <option value="Mid Cap">Mid Cap</option>
+          <option value="Small Cap">Small Cap</option>
+        </select>
+      </div>
+    </div>
+    <div class="scr-hint" id="hintToken"></div>
+    <p class="note">Record-only — doesn't gate GO/NO-TRADE.</p>
+    <div class="tier-result neutral" id="tierResult">Select a tier.</div>
+
+    <div class="field" style="margin-top:10px;">
+      <label>Objective</label>
+      <select id="tradingObjective">
+        <option value="">Select...</option>
+        <option value="Scalping">Scalping</option>
+        <option value="Swing">Swing</option>
+        <option value="Position/TF">Position/Trend Following (TF)</option>
+      </select>
+    </div>
+    <p class="note">Record-only — doesn't gate GO/NO-TRADE. Determines which chart timeframe your Stage 2 bias should come from.</p>
+    <div class="rule important" id="objectiveNote"><span class="badge" id="objectiveNoteBadge">IMPORTANT</span><span class="txt" id="objectiveNoteTxt"></span></div>
+  </div>
+
+  <!-- STAGE 4: TOKEN TREND -->
+  <div class="stage" id="stage4">
+    <h2>Stage 4 — Token Trend Assessment <span class="tag" id="tag4">PENDING</span></h2>
+    <p class="note">MA trend check by timeframe. Daily: price above MA100 (ZS) is the required gate below; everything else is record-only.</p>
+    <label class="item"><input type="checkbox" id="tokenMA_Weekly_ZS"> Weekly: price above MA100 (ZS)</label>
+    <label class="item"><input type="checkbox" id="tokenMA_Weekly"> Weekly: MA20 &gt; MA50 &gt; MA100</label>
+    <label class="item"><input type="checkbox" id="tokenMA_Daily"> Daily: price above MA100 (ZS)</label>
+    <label class="item"><input type="checkbox" id="tokenMA_Daily_Stack"> Daily: MA20 &gt; MA50 &gt; MA100</label>
+    <label class="item"><input type="checkbox" id="tokenMA_4H"> 4H: MA20 &gt; MA50 &gt; MA100</label>
+    <label class="item"><input type="checkbox" id="tokenMA_1H"> 1H: MA20 &gt; MA50 &gt; MA100</label>
+    <div class="field">
+      <label>RSI Zone (for record only — not gated)</label>
+      <select id="tokenRSI14">
+        <option value="">Select...</option>
+        <option value="Zone 1">Zone 1 (RSI &lt; 30)</option>
+        <option value="Zone 2">Zone 2 (30 &ndash; 50)</option>
+        <option value="Zone 3">Zone 3 (50 &ndash; 70)</option>
+        <option value="Zone 4">Zone 4 (RSI &ge; 70)</option>
+      </select>
+    </div>
+
+    <h3>Token Current Structure</h3>
+    <div class="rationale">
+      <strong>Before selecting:</strong> trace the token's actual structure on the chart. Confirm exactly where the Trend Shift Line sits, and which stage of the cycle price is actually in — not just wicked near a level intraday. Check more than one timeframe before locking in an answer. A hurried label here is the easiest way to talk yourself into a bad entry.
+    </div>
+    <div class="field">
+      <select id="tokenMove">
+        <option value="">Select...</option>
+        <option value="Near TSL">Near TSL</option>
+        <option value="Stage 1">Stage 1</option>
+        <option value="Stage 2">Stage 2</option>
+        <option value="Stage 3">Stage 3</option>
+        <option value="Stage 4">Stage 4</option>
+        <option value="Stage 5">Stage 5</option>
+        <option value="Stage 6">Stage 6</option>
+      </select>
+    </div>
+    <p class="note">TSL = Trend Shift Line. For an emerging trend, TSL HIGH is the highest Box_Top among the prior boxes to the left — the key resistance level that, once closed above, confirms the new trend and invalidates the old range. TSL LOW is the low (Box_Bottom) of the current/most recent box — a close below that shifts the trend back down. "Near TSL" means price is testing/holding right at one of these two lines, not yet broken through. Once price has actually closed above TSL HIGH, the box(es) that form above it are Stage 1 of the new trend.</p>
+
+  </div>
+
+  <!-- STAGE 5 -->
+  <div class="stage" id="stage5">
+    <h2>Stage 5 — Entry Type <span class="tag" id="tag5">PENDING</span></h2>
+    <div class="field">
+      <label>Entry type</label>
+      <select id="entryType">
+        <option value="">Select...</option>
+        <option value="E1">E1 — Support of Darvas Box Bottom</option>
+        <option value="E2">E2 — DB50 break or retest</option>
+        <option value="E3">E3 — Box Top break</option>
+        <option value="E4">E4 — Box Top retest</option>
+      </select>
+    </div>
+
+    <div id="e1Checks" style="display:none;">
+      <label class="item"><input type="checkbox" id="e1Validated"> Box Bottom support validated (2+ touches)</label>
+      <label class="item"><input type="checkbox" id="e1SLPoint"> Clear invalidation point below Box Bottom for stop-loss</label>
+      <label class="item"><input type="checkbox" id="e1MAConfluence"> Confluence with Moving Averages (MA20/MA50/MA100) at this level</label>
+    </div>
+    <div id="e2Checks" style="display:none;">
+      <label class="item"><input type="checkbox" id="e2Confirmed"> DB50 break or retest confirmed (closed beyond it, or held on retest)</label>
+      <label class="item"><input type="checkbox" id="e2MAConfluence"> Confluence with Moving Averages (MA20/MA50/MA100) at this level</label>
+    </div>
+    <div id="e3Checks" style="display:none;">
+      <label class="item"><input type="checkbox" id="e3Closed1h"> Closed ABOVE Box Top on 1H</label>
+      <label class="item"><input type="checkbox" id="e3Closed4h"> Closed ABOVE Box Top on 4H</label>
+      <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">Both 1H AND 4H must confirm. One without the other is not a valid break — it may be a wick, a liquidity grab, or a false start.</span></div>
+    </div>
+    <div id="e4Checks" style="display:none;">
+      <label class="item"><input type="checkbox" id="e4Retest"> Box Top is holding as support on this retest (former resistance now support)</label>
+    </div>
+  </div>
+
+  <!-- STAGE 6: RISK -->
+  <div class="stage" id="stage6">
+    <h2>Stage 6 — Risk Management &amp; R:R Calculator <span class="tag" id="tag6">PENDING</span></h2>
+
+    <div class="row">
+      <div class="field"><label>Account size ($)</label><input type="number" id="acctSize" step="any"></div>
+      <div class="field"><label>Risk per trade (%)</label><input type="number" id="riskPct" step="any" placeholder="e.g. 1"></div>
+    </div>
+    <p class="note">1% risk per trade = 1R (your risk unit for this trade) — a 3R target simply means 3&times; whatever dollar amount you're risking here. Fill these in first: Auto-Calculate, position size, and the leverage scenarios below all key off this.</p>
+    <div class="calc-result neutral" id="sizeResult">Enter account size and risk % to calculate position size.</div>
+
+    <div class="row" style="margin-top:14px;">
+      <div class="field"><label>Entry price</label><input type="number" id="entryPx" step="any"></div>
+      <div class="field"><label>Direction</label>
+        <select id="direction">
+          <option value="">Select...</option>
+          <option value="long">Long</option>
+          <option value="short">Short</option>
+        </select>
+      </div>
+    </div>
+
+    <h3>Leverage &amp; Margin</h3>
+    <div class="row">
+      <div class="field"><label>Leverage (x)</label><input type="number" id="leverage" step="any" placeholder="e.g. 5"></div>
+      <div class="field"><label>Margin mode</label>
+        <select id="marginMode">
+          <option value="">Select...</option>
+          <option value="isolated">Isolated</option>
+          <option value="cross">Cross</option>
+        </select>
+      </div>
+    </div>
+    <div class="rule" id="crossWarn" style="display:none;"><span class="badge">TRADER RULE</span><span class="txt">Cross margin puts your whole account balance at risk on this one position. Make sure that's intentional.</span></div>
+
+    <h3>Auto-Calculate Stop-Loss &amp; Target (1R : 3R)</h3>
+    <p class="note">Stop-loss is placed a safety buffer inside your leverage's approximate liquidation distance, so it always triggers first. Target is set at 3&times; that distance. Uses your Account size and Risk % above to also work out the position size and margin that stop distance implies — not just the price levels. This is a quick-start suggestion, not a replacement for a real structural level (support/resistance/Box_Bottom) — override the fields below if the chart says otherwise.</p>
+    <div class="row">
+      <div class="field"><label>SL buffer (% of liq. distance)</label><input type="number" id="slBufferPct" step="any" value="70"></div>
+    </div>
+    <button class="primary" onclick="autoCalcSLTP()">Auto-Calculate SL &amp; Target</button>
+    <div class="calc-result neutral" id="autoCalcSummary" style="display:none;"></div>
+
+    <div class="row" style="margin-top:14px;">
+      <div class="field"><label>Stop-loss price</label><input type="number" id="slPx" step="any"></div>
+      <div class="field"><label>Target price</label><input type="number" id="tpPx" step="any"></div>
+    </div>
+    <div class="calc-result neutral" id="rrResult">Enter entry, stop-loss and target to calculate R:R.</div>
+
+    <h3>Leverage Scenario Explorer</h3>
+    <p class="note">Uses your Entry, Stop-Loss, Account size and Risk % above. Position size is fixed by your risk % — leverage only changes how much margin you lock up and how close liquidation sits to your entry.</p>
+    <div id="leverageTableWrap"><p class="note">Enter entry, stop-loss, account size and risk % above to see leverage scenarios.</p></div>
+    <p class="privacy-note">Liquidation distance shown is an approximation (~100/leverage% move against you). Real liquidation price depends on maintenance margin rate and fees — always confirm the exact number OKX shows you before placing the order.</p>
+
+    <label class="item"><input type="checkbox" id="leverageOk"> Leverage is within my own personal maximum for a swing trade — not just "whatever the exchange allows"</label>
+    <label class="item"><input type="checkbox" id="liqBuffer"> Liquidation price is SAFELY BEYOND my stop-loss — my SL will always trigger before liquidation could</label>
+    <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">Leverage never increases position size beyond what my risk-per-trade % already allows — it only reduces the margin locked up.</span></div>
+
+    <h3>Invalidation Plan (Pre-Mortem)</h3>
+    <p class="note">Your hard stop-loss protects your account. Invalidation is different — it's the specific thing that tells you the SETUP is wrong, which can happen well before price ever reaches your SL. Defining this now, while you're calm, stops you from bargaining with the trade later.</p>
+    <div class="field"><label>What specifically invalidates this setup?</label>
+      <textarea id="invalidationCriteria" placeholder="e.g. a 1H close back below Box_Bottom, RSI14 losing 40 on the retest, BTC breaking its own trend shift line against me..."></textarea>
+    </div>
+    <div class="field"><label>If that happens, my action:</label>
+      <textarea id="invalidationAction" placeholder="e.g. exit immediately at market, don't wait for the hard SL to fill"></textarea>
+    </div>
+    <label class="item"><input type="checkbox" id="invalidationDefined"> I've defined my invalidation criteria before entering — I'm not just planning to wait for the hard SL to hit</label>
+    <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">If my invalidation condition fires, I exit — I do not wait to see if the hard SL agrees with me first.</span></div>
+
+    <h3>Trade Scenario Planning</h3>
+    <p class="note">Record-only — plans out what you expect and how long you're willing to hold under each of the three ways this trade can go, so a decision is already made before you're watching the chart live. This doesn't gate GO/NO-TRADE.</p>
+
+    <div class="field"><label>Bullish scenario — what happens, and my plan</label>
+      <textarea id="bullScenario" placeholder="e.g. clean break of Box_Top with volume, I trail SL under each higher low and let it run toward the next resistance"></textarea>
+    </div>
+
+    <div class="field" style="margin-top:10px;"><label>Bearish scenario — what happens, and my plan</label>
+      <textarea id="bearScenario" placeholder="e.g. rejects at entry and closes back inside the box, I treat that as invalidation and exit rather than waiting for hard SL"></textarea>
+    </div>
+
+    <div class="field" style="margin-top:10px;"><label>Sideways scenario — what happens, and my plan</label>
+      <textarea id="sidewaysScenario" placeholder="e.g. price chops inside the box with no follow-through; if it's not moving toward target within my time limit, I close it and free up the capital"></textarea>
+    </div>
+    <div class="row">
+      <div class="field"><label>Max hold if sideways (time stop)</label><input type="number" id="sidewaysHoldValue" step="any" placeholder="e.g. 2"></div>
+      <div class="field"><label>Unit</label>
+        <select id="sidewaysHoldUnit">
+          <option value="">Select...</option>
+          <option value="Hours">Hours</option>
+          <option value="Days">Days</option>
+        </select>
+      </div>
+    </div>
+    <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">A trade that's going nowhere is still costing me opportunity elsewhere. My sideways time-stop is a real exit, not a suggestion.</span></div>
+
+    <label class="item" style="margin-top:10px;"><input type="checkbox" id="posLimit"> Within max concurrent open positions limit</label>
+    <label class="item"><input type="checkbox" id="corrLimit"> Not stacking multiple correlated coins in the same direction</label>
+    <label class="item"><input type="checkbox" id="dailyLimit"> Have NOT exceeded max daily loss limit today</label>
+  </div>
+
+  <!-- STAGE 7: EXECUTE -->
+  <div class="stage" id="stage7">
+    <h2>Stage 7 — Execute Entry <span class="tag" id="tag7">PENDING</span></h2>
+    <label class="item"><input type="checkbox" id="slSet"> Stop-Loss order placed immediately</label>
+    <label class="item"><input type="checkbox" id="journaled"> Entry, SL, and target logged</label>
+  </div>
+
+  <!-- TRADE PLAN EXPORT -->
+  <div class="stage info" id="stageExport">
+    <h2>Trade Plan Export <span class="tag info">FOR DISCORD</span></h2>
+    <p class="note">Auto-generated from everything you've filled in above. Review and edit the preview below before copying — it's a starting draft, not locked text.</p>
+    <textarea id="tradePlanPreview" style="min-height:280px;font-family:Consolas,Menlo,monospace;font-size:0.8rem;"></textarea>
+    <button class="primary" id="copyTradePlanBtn" onclick="copyTradePlan()">Copy Trade Plan</button>
+    <button class="secondary" onclick="refreshTradePlan()">Refresh Preview</button>
+    <p class="note" id="copyDisabledNote" style="display:none;margin-top:6px;">Copy is disabled until every stage passes (or the kill switch clears) — this isn't a validated trade plan yet.</p>
+  </div>
+
+  <!-- CSV LOG -->
+  <div class="stage info" id="stageCsvLog">
+    <h2>CSV Log <span class="tag info">SAVED TO YOUR COMPUTER</span></h2>
+    <p class="note">Logs every input above as one row in a CSV file you choose — never displayed back inside this tool, only written to disk.</p>
+    <div id="csvFsaControls">
+      <button class="primary" onclick="chooseLogFile()">Choose Log File</button>
+      <button class="secondary" onclick="logEntryToCsv()">Log This Entry</button>
+      <p class="privacy-note" id="logFileStatus">No file selected yet.</p>
+    </div>
+    <div id="csvFallbackControls" style="display:none;">
+      <p class="note">Your browser doesn't support choosing a folder directly (this needs Chrome or Edge). Use this instead — it downloads the full accumulated log each time:</p>
+      <button class="primary" onclick="downloadFullCsvLog()">Download Full CSV Log</button>
+      <p class="privacy-note">Entries accumulate in this browser until you download; downloading does not clear them.</p>
+    </div>
+  </div>
+
+  <!-- STAGE 8: DURING-TRADE (informational, not gating) -->
+  <div class="stage info" id="stage8">
+    <h2>Stage 8 — During-Trade Management <span class="tag info">ONCE IN A TRADE</span></h2>
+    <p class="note">Not part of the entry decision — use this once you're already in the position.</p>
+    <label class="item"><input type="checkbox" id="earlyExit"> Watching for early exit signals (structure breaking, momentum fading)</label>
+    <label class="item"><input type="checkbox" id="breakeven"> Moved Stop-Loss to breakeven after a favorable move (e.g. past 1R)</label>
+    <label class="item"><input type="checkbox" id="partials"> Taking partial profits at key levels</label>
+    <label class="item"><input type="checkbox" id="trailing"> Trailing stop as price moves in my favor</label>
+    <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">I do not interfere out of boredom, and I do not add to a losing position to "average down."</span></div>
+  </div>
+
+  <!-- STAGE 9: POST-TRADE REVIEW (private, not persisted, not a scoreboard) -->
+  <div class="stage info" id="stage9">
+    <h2>Stage 9 — Post-Trade Review <span class="tag info">AFTER EXIT</span></h2>
+    <p class="note">A private, one-trade-at-a-time reflection — not a running scoreboard. These fields aren't saved in the browser and reset if you close this page. But if you fill them in and then click "Log This Entry" in the CSV Log section below, they ARE written to your CSV file as part of that row — the CSV is the only place this gets a permanent record, by your own choice.</p>
+    <div class="row">
+      <div class="field"><label>Entry price</label><input type="number" id="rvEntry" step="any"></div>
+      <div class="field"><label>Exit price</label><input type="number" id="rvExit" step="any"></div>
+      <div class="field"><label>Time held</label><input type="text" id="rvTime" placeholder="e.g. 3 days"></div>
+    </div>
+    <div class="field">
+      <label>Reason for exit</label>
+      <select id="rvReason">
+        <option value="">Select...</option>
+        <option value="3R">Hit 3R target</option>
+        <option value="SL">Hit stop-loss</option>
+        <option value="manual">Manual / discretionary exit</option>
+      </select>
+    </div>
+    <label class="item"><input type="checkbox" id="rvFollowedPlan"> Did I follow my own plan, start to finish?</label>
+    <div class="field wide">
+      <label>One specific lesson from this trade</label>
+      <textarea id="rvLesson" placeholder="What I'd repeat, or do differently..."></textarea>
+    </div>
+    <button class="primary" onclick="copyReview()">Copy Summary to Clipboard</button>
+    <button class="secondary" onclick="clearReview()">Clear</button>
+    <div class="privacy-note">This section is intentionally not saved between visits.</div>
+  </div>
+
+  <div class="mantra">
+    <p>"I protect my family."</p>
+    <p>"I trade objectively."</p>
+    <p>"God is with me — I pray before every trade."</p>
+    <p>"I don't need one big win — I need small, consistent gains that compound."</p>
+  </div>
+
+  <div class="trader-rules-header">— TRADER WISDOM —</div>
+  <div class="stage info">
+    <div class="wisdom-quote">You hit your 3R target and want to hold for more. You'd work a full week at your job for that same amount. The market already paid you — take the trade off, and let the next setup earn the next one.</div>
+    <div class="wisdom-quote">Every day you run the checklist even when you're sure the trade is good, you're not slowing yourself down. You're building the habit that saves you on the one day you're wrong and don't know it yet.</div>
+    <div class="wisdom-quote">Leverage doesn't make you right faster. It only makes you find out you were wrong faster. Size every trade like it could go against you — because eventually, one will.</div>
+    <div class="wisdom-quote">The middle of the box has no edge waiting for you, only your own impatience. The trade you don't take today is capital protected for the one you will take tomorrow.</div>
+    <div class="wisdom-quote">A loss with a lesson written down is tuition. A loss with nothing learned is just a loss. Write the one thing down, every time — win or lose.</div>
+  </div>
+
+  <div class="reset-btn-bottom-wrap">
+    <button class="secondary" onclick="resetChecklist()">Reset Checklist for New Trade</button>
+  </div>
+
+  </div><!-- /tabChecklist -->
+
+  <div id="tabPsychology" class="tab-panel" style="display:none;">
+
+    <div class="trader-rules-header">— TRADING PSYCHOLOGY —</div>
+
+    <div class="stage info">
+      <h2>Thinking in Probabilities</h2>
+      <div class="rationale">
+        <strong>Scenario:</strong> You just lost 3 trades in a row.<br><br>
+        Your emotional brain says: <em>"Something is wrong with my strategy."</em> Or: <em>"The next trade will probably lose too."</em><br><br>
+        The probability-based trader says: <em>"Those three trades are finished. The next trade is a new probability."</em>
+      </div>
+      <p class="note">The market doesn't remember your previous trade. If your setup has a genuine edge, you don't need to know "Will THIS trade win?" The question becomes "Did I execute my setup correctly?" That's the whole psychological shift.</p>
+    </div>
+
+    <div class="stage info">
+      <h3>The 5 Fundamental Truths</h3>
+      <div class="psych-img-wrap">
+        <svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="20 trade outcomes from a profitable 60 percent edge, shown as a streaky random sequence of wins and losses, including a 3-loss streak">
+          <text x="240" y="18" font-size="11" fill="var(--navy-text)" font-weight="700" text-anchor="middle">A profitable 60%-edge trader's real last 20 trades</text>
+          <circle cx="30" cy="55" r="9" fill="var(--green)"/><circle cx="52" cy="55" r="9" fill="var(--green)"/><circle cx="74" cy="55" r="9" fill="var(--red)"/>
+          <circle cx="96" cy="55" r="9" fill="var(--green)"/><circle cx="118" cy="55" r="9" fill="var(--green)"/><circle cx="140" cy="55" r="9" fill="var(--red)"/>
+          <circle cx="162" cy="55" r="9" fill="var(--red)"/><circle cx="184" cy="55" r="9" fill="var(--red)"/><circle cx="206" cy="55" r="9" fill="var(--green)"/>
+          <circle cx="228" cy="55" r="9" fill="var(--green)"/><circle cx="250" cy="55" r="9" fill="var(--red)"/><circle cx="272" cy="55" r="9" fill="var(--green)"/>
+          <circle cx="294" cy="55" r="9" fill="var(--green)"/><circle cx="316" cy="55" r="9" fill="var(--green)"/><circle cx="338" cy="55" r="9" fill="var(--red)"/>
+          <circle cx="360" cy="55" r="9" fill="var(--red)"/><circle cx="382" cy="55" r="9" fill="var(--green)"/><circle cx="404" cy="55" r="9" fill="var(--red)"/>
+          <circle cx="426" cy="55" r="9" fill="var(--green)"/><circle cx="448" cy="55" r="9" fill="var(--green)"/>
+          <path d="M 140 70 L 140 80 L 184 80 L 184 70" fill="none" stroke="var(--red)" stroke-width="1.5"/>
+          <text x="162" y="98" font-size="11" fill="var(--red)" font-weight="700" text-anchor="middle">3 losses in a row</text>
+          <text x="162" y="112" font-size="10" fill="var(--muted)" text-anchor="middle">— still a winning system</text>
+          <circle cx="170" cy="140" r="5" fill="var(--green)"/><text x="182" y="144" font-size="10" fill="var(--muted)">Win</text>
+          <circle cx="230" cy="140" r="5" fill="var(--red)"/><text x="242" y="144" font-size="10" fill="var(--muted)">Loss</text>
+        </svg>
+        <p class="note" style="text-align:center;margin-top:4px;">60% edge, 12 wins / 8 losses overall — but the order is random. The same streak that opened this page shows up right in the middle, and the system is still profitable.</p>
+      </div>
+      <div class="rule neutral"><span class="badge">1</span><span class="txt">Anything can happen — even your best setup can lose.</span></div>
+      <div class="rule neutral"><span class="badge">2</span><span class="txt">You don't need to know what happens next to make money — you only need an edge over a series of trades.</span></div>
+      <div class="rule neutral"><span class="badge">3</span><span class="txt">There is a random distribution between wins and losses — your next 5 trades could be W L L L W or L L L L L, even if your strategy is profitable.</span></div>
+      <div class="rule neutral"><span class="badge">4</span><span class="txt">An edge is simply a higher probability — not certainty. A 60% setup can still lose.</span></div>
+      <div class="rule neutral"><span class="badge">5</span><span class="txt">Every moment in the market is unique — the previous trade does not determine the next one.</span></div>
+    </div>
+
+    <div class="stage info">
+      <h3>The Dog Analogy</h3>
+      <div class="psych-img-wrap">
+        <svg viewBox="0 0 480 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing a dog that bit you forming a danger memory, which your brain then wrongly applies to a second, friendly dog">
+          <defs>
+            <g id="dogIconShape">
+              <ellipse cx="0" cy="34" rx="24" ry="13" fill="currentColor"/>
+              <circle cx="30" cy="20" r="11" fill="currentColor"/>
+              <path d="M 24 10 L 17 -5 L 31 6 Z" fill="currentColor"/>
+              <path d="M 38 10 L 45 -3 L 33 6 Z" fill="currentColor"/>
+              <rect x="-18" y="44" width="5" height="14" rx="1.5" fill="currentColor"/>
+              <rect x="-6" y="44" width="5" height="14" rx="1.5" fill="currentColor"/>
+              <rect x="10" y="44" width="5" height="14" rx="1.5" fill="currentColor"/>
+              <rect x="20" y="44" width="5" height="14" rx="1.5" fill="currentColor"/>
+              <path d="M -24 26 Q -36 16 -27 4" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round"/>
+            </g>
+          </defs>
+          <g transform="translate(55,60)" style="color:var(--red)"><use href="#dogIconShape"/></g>
+          <text x="55" y="175" font-size="11" fill="var(--red)" font-weight="700" text-anchor="middle">Dog #1 bites you</text>
+          <line x1="110" y1="95" x2="175" y2="95" stroke="var(--muted)" stroke-width="2"/>
+          <path d="M175,95 L167,90 L167,100 Z" fill="var(--muted)"/>
+          <text x="240" y="80" font-size="22" text-anchor="middle">🧠</text>
+          <text x="240" y="105" font-size="11" fill="var(--navy-text)" font-weight="700" text-anchor="middle">Memory forms:</text>
+          <text x="240" y="119" font-size="11" fill="var(--navy-text)" font-weight="700" text-anchor="middle">"Dog = Danger"</text>
+          <line x1="305" y1="95" x2="370" y2="95" stroke="var(--muted)" stroke-width="2"/>
+          <path d="M370,95 L362,90 L362,100 Z" fill="var(--muted)"/>
+          <g transform="translate(420,60)" style="color:var(--steel)"><use href="#dogIconShape"/></g>
+          <text x="420" y="175" font-size="11" fill="var(--steel)" font-weight="700" text-anchor="middle">Dog #2 — actually friendly</text>
+          <text x="420" y="40" font-size="10" fill="var(--red)" font-style="italic" text-anchor="middle">brain still shouts "danger!"</text>
+        </svg>
+        <p class="note" style="text-align:center;margin-top:4px;">Same mechanism as Trade #1 and Trade #2 losing — your brain flags Trade #3 as dangerous even though it's a completely independent setup.</p>
+      </div>
+      <div class="rationale">
+        Imagine a child seeing a dog for the first time. He's curious and excited — he has no previous experience with dogs. Unfortunately, the first dog he meets attacks and bites him. After that, whenever he sees another dog — even a completely friendly one — his mind automatically connects it with the painful memory. He becomes afraid, because his brain has learned: <strong>Dog = danger.</strong> But the second dog isn't necessarily dangerous — his previous experience is distorting how he reads the new situation.
+      </div>
+      <div class="rationale">
+        Trade #1 → Loss. Trade #2 → Loss. Then your setup appears again — Trade #3, the exact same valid setup. But now your brain says: <em>"Careful! This looks like the trades that lost."</em> You hesitate, reduce your position, move your entry, or skip the trade entirely. Now flip it: Trade #1 → Win, Trade #2 → Win, the exact same setup appears — and the opposite bias (overconfidence) kicks in instead.
+      </div>
+    </div>
+
+    <div class="stage info">
+      <h3>The Key Lesson</h3>
+      <p class="note">The next trade is not the previous trade. A valid setup has its own probability distribution. Your last loss doesn't make the next trade more likely to lose, and your last win doesn't make the next trade more likely to win.</p>
+      <div class="wisdom-quote">Dog #1 bit me &ne; every dog will bite me.<br>Trade #1 lost &ne; Trade #2 will lose.</div>
+      <p class="note">That's one of the central ideas behind thinking in probabilities — trading without becoming emotionally attached to the outcome of any single trade.</p>
+    </div>
+
+    <div class="trader-rules-header">— MANAGING DAMAGING EMOTIONS —</div>
+    <div class="stage info">
+      <p class="note">Success in trading is more about emotional control than technical mastery. These emotions will try their best to take over you during every trade — the goal isn't to never feel them, it's to acknowledge each one so you keep control over your actions.</p>
+    </div>
+
+    <div class="stage info">
+      <h3>1. FOMO</h3>
+      <div class="psych-img-wrap">
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Price chart illustrating a FOMO entry bought late into a rally, right before it reverses">
+          <polyline points="20,180 70,172 120,162 170,142 210,104 240,64 265,36 285,56 310,92 340,122 370,142 400,152 440,156"
+            fill="none" stroke="var(--steel)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="265" y1="36" x2="265" y2="200" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <circle cx="265" cy="36" r="6" fill="var(--red)"/>
+          <text x="272" y="28" font-size="13" fill="var(--red)" font-weight="700">You buy here</text>
+          <text x="272" y="44" font-size="11" fill="var(--red)">(chasing the pump)</text>
+          <text x="340" y="170" font-size="11" fill="var(--muted)" font-style="italic">...then it reverses</text>
+        </svg>
+        <p class="note" style="text-align:center;margin-top:4px;">Buying after the move already happened — right where the risk/reward has flipped against you.</p>
+      </div>
+      <p class="note">Trading without being objective — the itch to trade because you see the price going up. You may not have a trade plan before buying, or a mabilisang trade plan. Makikita mo lang ang ibang options and things to consider AFTER executing the trade: like resistance na pala, or maliit pala ang RRR, and worst is wala namang valid na entry point nung bumili ka.</p>
+      <div class="rationale">
+        Always keep in mind: there will always be another play coming. You have to ACCEPT that you missed a trade, and that you will trade with greater risk if you chase the price. Prices move in cycles — if you miss the move of a stock, it may create another setup, and there will be many other stocks that make the same move, whether the same swing or the same breakout. Maiwan ka man ng NOW, DITO, MAC, MWIDE — madami pang dadating na plays. Same setup, same plays, iba-iba lang ang stock code.
+      </div>
+      <p class="note">So simple lang ang FOMO: acknowledge it, ACCEPT na naiwan ka. When you know this, you will not chase the price.</p>
+      <div class="rule important"><span class="badge">MANTRA</span><span class="txt">"I am a disciplined trader. I will not trade without a Trade Plan."</span></div>
+    </div>
+
+    <div class="stage info">
+      <h3>2. Fear of Loss</h3>
+      <div class="psych-img-wrap">
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Price chart illustrating selling too early out of fear after a small gain, then watching the move continue much higher without you">
+          <polyline points="20,185 60,195 100,170 140,180 180,140 220,150 260,105 300,115 340,70 380,80 430,35"
+            fill="none" stroke="var(--steel)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="140" y1="180" x2="140" y2="205" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <circle cx="140" cy="180" r="6" fill="var(--red)"/>
+          <text x="20" y="200" font-size="11" fill="var(--red)" font-weight="700">Sold at +4%</text>
+          <text x="20" y="213" font-size="10" fill="var(--red)">(a normal pullback scared you out)</text>
+          <text x="330" y="55" font-size="11" fill="var(--muted)" font-style="italic">...price kept going without you</text>
+        </svg>
+        <p class="note" style="text-align:center;margin-top:4px;">Exiting on the first wobble, not on your plan — the trade was fine, your nerves weren't.</p>
+      </div>
+      <p class="note">Common after a series of losses. Natakot na ang trader, nawalan na ng confidence. One sign: kapag nag-move up na ang price, kahit 4% pa lang, binenta na — sayang ang trade plan. Hindi nabigyan ng enough space ang price action na gumalaw. Remember: hindi laging pataas ang price, it moves in waves to reach a certain level.</p>
+      <div class="rationale">
+        To rebuild confidence: mentally prepare yourself first. Purge and take your mind off trading by doing other things to keep you busy. When you're calm and ready again, start trading virtually or with a small allocation — 5&ndash;10% of the portfolio. REMOVE the need to be right all the time. Hindi lahat ng losses ay bad trades, same with winning trades — following your TRADE PLAN is what makes the trade a success. Confidence builds as you gain more data and experience. Also, lean on your support group whenever these emotions hit — you're not the only one who's gone through this.
+      </div>
+      <p class="note"><strong>Building/rebuilding confidence:</strong> a newbie trader on a setup needs "familiarization" — backtest first, to see how the setup forms and ends. Then forward-test with a small allocation, to practice your execution. Smaller allocation = less emotion. Once you know how to execute the setup cleanly, that's when you move up to your normal allocation.</p>
+    </div>
+
+    <div class="stage info">
+      <h3>3. Greed</h3>
+      <div class="psych-img-wrap">
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chart illustrating oversized tranches added into resistance, driven by greed, right before price reverses">
+          <line x1="20" y1="60" x2="460" y2="60" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="24" y="52" font-size="11" fill="var(--red)" font-weight="700">Resistance</text>
+          <polyline points="20,180 80,162 140,142 190,112 230,82 260,64 290,56 320,72 360,112 400,152 440,176"
+            fill="none" stroke="var(--steel)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="190" cy="112" r="5" fill="var(--navy-text)"/>
+          <circle cx="230" cy="82" r="7" fill="var(--navy-text)"/>
+          <circle cx="260" cy="64" r="10" fill="var(--red)"/>
+          <text x="162" y="130" font-size="10" fill="var(--muted)">Tranche 1</text>
+          <text x="202" y="100" font-size="10" fill="var(--muted)">Tranche 2</text>
+          <text x="224" y="42" font-size="10" fill="var(--red)" font-weight="700">Oversized add</text>
+        </svg>
+        <p class="note" style="text-align:center;margin-top:4px;">Adding bigger tranches the closer price gets to resistance — sizing up on hope, not on a plan.</p>
+      </div>
+      <p class="note">Tranche-buying into resistance just because you see the price going up. Or oversizing your first entry. FOMO and overtrading are also forms of greed — they all come from a need to win, a desire for gain, and the thought of winning clouding your judgment.</p>
+      <div class="rule important"><span class="badge">CONTROL</span><span class="txt">Just like FOMO and every other emotion here: FOLLOW YOUR TRADE PLAN. Pre-planning is what gets you through the chaos and uncertainty where hasty decisions get made.</span></div>
+    </div>
+
+    <div class="stage info">
+      <h3>4. Pride / Ego / Superman Syndrome</h3>
+      <div class="psych-img-wrap">
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Equity curve illustrating a winning streak building overconfidence, followed by one oversized trade that wipes out the gains">
+          <polyline points="20,190 80,190 80,165 140,165 140,140 200,140 200,112"
+            fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="200,112 260,42"
+            fill="none" stroke="var(--red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="260,42 330,195"
+            fill="none" stroke="var(--red)" stroke-width="3" stroke-dasharray="2 5" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="30" y="150" font-size="10" fill="var(--muted)">3 wins in a row</text>
+          <circle cx="260" cy="42" r="7" fill="var(--red)"/>
+          <text x="210" y="28" font-size="11" fill="var(--red)" font-weight="700">"Sure thing" oversized trade</text>
+          <text x="245" y="212" font-size="10" fill="var(--muted)" font-style="italic">...gives back the whole streak</text>
+        </svg>
+        <p class="note" style="text-align:center;margin-top:4px;">A streak builds confidence — overconfidence sizes the next trade as if it can't lose.</p>
+      </div>
+      <p class="note">Hindi pababaan ang AEP, or palakihan ng gains — lalo na within the group. Walang yabangan dito. We only trade our objectives and our trade plans. As long as you REMAIN OBJECTIVE, you followed your trade plan, and you LEARN from it — big or small the gain — then it's a GOOD TRADE.</p>
+      <div class="rationale">
+        When trading, we are against OURSELVES. Our emotions — how we control them — will dictate how we control our trades. We trade what we see on the chart and react to the price action; no one can predict the exact bottom to buy or the exact top to sell.
+      </div>
+      <p class="note">Laging tandaan: hindi mo objective na makuha ang 100% of the rally. Also, a winning streak doesn't mean your next trades will also win — this is where the superman syndrome / overconfidence / ego problem comes from. After a big gain, consider stepping back or withdrawing gains to reset your portfolio, or keep going as long as you stay objective. This is also where DENIAL (not accepting the trade didn't go your way), FEAR OF BEING WRONG, and HOPE (that price comes back to lower your loss) come from.</p>
+      <div class="wisdom-quote">Dapat ba nating masalo ang bottom? Dapat ba tayong sa peak nakakabenta? Our objective is to execute well. Profit is just the by-product.</div>
+    </div>
+
+    <div class="stage info">
+      <h3>5. Regret</h3>
+      <div class="psych-img-wrap">
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chart illustrating a trader selling per their plan, then regretting it when a dashed alternate path shows price continuing to rise">
+          <polyline points="20,180 70,160 120,145 170,120 220,105"
+            fill="none" stroke="var(--steel)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="220" cy="105" r="6" fill="var(--navy-text)"/>
+          <text x="140" y="95" font-size="11" fill="var(--navy-text)" font-weight="700">Sold here (per plan)</text>
+          <polyline points="220,105 270,112 320,118 370,122"
+            fill="none" stroke="var(--muted)" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="275" y="140" font-size="10" fill="var(--muted)">What actually happened</text>
+          <polyline points="220,105 270,80 320,50 370,30"
+            fill="none" stroke="var(--red)" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="275" y="42" font-size="10" fill="var(--red)" font-style="italic">"What if I held?" (regret)</text>
+        </svg>
+        <p class="note" style="text-align:center;margin-top:4px;">Both paths were unknown when you sold — only one is real, and you followed the plan either way.</p>
+      </div>
+      <p class="note"><em>"I should have held. I should have sold. I should have bought."</em></p>
+      <div class="rationale">
+        Trading is about PROBABILITIES — we build our trade plans around them. If your plan was to sell and you sold, that's a good trade. If price goes up right after you sell, some traders feel regret anyway. But what if you hadn't sold, hadn't followed your plan, and price had dropped instead? Whatever happens next — after selling, after trading your plan, or watching a rally you didn't plan to buy — the objective is always to EXECUTE YOUR PLAN.
+      </div>
+      <p class="note">We build our trade plans before the market opens, WHEN WE ARE CALM AND OBJECTIVE — when we can see the probabilities clearly. We must accept we can be wrong, and price may keep going after we sell, or rebound after we cut. RESPECT YOUR TRADE PLAN — it was built with risk management and other safety protocols in place. Avoid intraday adjustments to the plan, where hasty and impulsive decisions get made; that skill comes later, but for now is the time for learning and practice. We only react to the price triggers we already defined. Hesitating to follow the plan — like not cutting when your cut-loss is hit — only turns into a bigger loss.</p>
+    </div>
+
+    <div class="stage info">
+      <h3>Acceptance</h3>
+      <div class="rule neutral"><span class="badge">1</span><span class="txt">Accept that you cannot be 100% right all the time.</span></div>
+      <div class="rule neutral"><span class="badge">2</span><span class="txt">Accept that you cannot catch the peak and bottom. Always practice an "Attitude of Gratitude."</span></div>
+      <div class="rule neutral"><span class="badge">3</span><span class="txt">Accept that you will lose in trading — which is why we have risk management. Our goal is to make money AND keep the money we made.</span></div>
+      <div class="rule neutral"><span class="badge">4</span><span class="txt">Accept that you will miss some trades. There will always be another play.</span></div>
+      <div class="rule neutral"><span class="badge">5</span><span class="txt">Accept that there is no perfect system. Every system has its pros and cons.</span></div>
+    </div>
+
+  </div><!-- /tabPsychology -->
+
+  <div id="tabChartguide" class="tab-panel" style="display:none;">
+
+    <div class="trader-rules-header">— HOW TO READ THE CHART —</div>
+    <div class="stage info">
+      <p class="note">A step-by-step way to zoom from the big picture down to your actual entry — three passes, each one narrowing the picture further. Do them in order, every time, before placing a trade.</p>
+    </div>
+
+    <div class="stage info">
+      <h2>Step 1 — Set Your Bias with Fibonacci Retracement</h2>
+      <p class="note">On the <strong>Weekly or Daily</strong> timeframe, plot a Fibonacci retracement from swing high to swing low (or the reverse, for a downtrend). A simple tool, but this is what sets your overall bias before anything else.</p>
+      <div class="rule neutral">
+        <span class="badge">DISCRETIONARY</span>
+        <span class="txt">Which swing you plot from is a judgment call, not a fixed rule — it depends on which horizon you're actually trading:</span>
+      </div>
+      <div class="rationale">
+        <strong>Longer-term (Position/TF):</strong> the whole major swing — the highest high to the lowest low of the broader structure (often spanning months). Sets bias for trades you intend to hold for weeks.<br><br>
+        <strong>Medium-term (Swing):</strong> the most recent significant swing — the latest major high to the latest major low within that bigger structure, not all the way back to the start of it.<br><br>
+        <strong>Shorter-term (Scalping):</strong> the most recent local swing only — the latest minor high to minor low. Still read on Weekly/Daily per Step 1, but zoomed to whatever leg is actually relevant to a trade you'll hold for hours, not weeks.<br><br>
+        Whichever horizon you pick, stay consistent with it for the rest of the read — Step 2's boxes and Step 3's entries should zoom in from the same swing you anchored your bias to, not a different one.
+      </div>
+
+      <div class="psych-img-wrap" id="fibScenarioWrap">
+
+        <div id="fibScenario0" class="fib-scenario">
+          <svg viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Price coming down off a downtrend and consolidating below the 23.6 percent Fibonacci level">
+            <line x1="20" y1="20" x2="430" y2="20" stroke="var(--muted2)" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="438" y="24" font-size="10" fill="var(--muted)">100% (Swing High)</text>
+            <line x1="20" y1="43.9" x2="430" y2="43.9" stroke="var(--muted3)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="47.9" font-size="10" fill="var(--muted3)" font-weight="700">88.6% &rarr; Retest of High</text>
+            <line x1="20" y1="64.9" x2="430" y2="64.9" stroke="var(--steel)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="68.9" font-size="10" fill="var(--steel)" font-weight="700">78.6% &rarr; Extension / TP zone</text>
+            <line x1="20" y1="100.2" x2="430" y2="100.2" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="104" font-size="10" fill="var(--red)" font-weight="700">61.8% &rarr; MYH / ATH (Golden Ratio)</text>
+            <line x1="20" y1="125" x2="430" y2="125" stroke="var(--navy-text)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="129" font-size="10" fill="var(--navy-text)" font-weight="700">50% &rarr; Swing (target 61.8%)</text>
+            <line x1="20" y1="149.8" x2="430" y2="149.8" stroke="var(--steel)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="153" font-size="10" fill="var(--steel)" font-weight="700">38.2% &rarr; Emerging Trend / Swing</text>
+            <line x1="20" y1="180.4" x2="430" y2="180.4" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="184" font-size="10" fill="var(--green)" font-weight="700">23.6% &rarr; Position</text>
+            <line x1="20" y1="205.2" x2="430" y2="205.2" stroke="var(--muted3)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="209.2" font-size="10" fill="var(--muted3)" font-weight="700">11.8% &rarr; Position starts</text>
+            <line x1="20" y1="230" x2="430" y2="230" stroke="var(--muted2)" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="438" y="234" font-size="10" fill="var(--muted)">0% (Swing Low)</text>
+
+            <polyline points="20,32 55,52 90,78 125,108 160,138 192,162 218,180 245,202 272,190 298,210 325,194 352,214 380,198 405,216 430,203"
+              fill="none" stroke="var(--navy-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="95" y="68" font-size="10" fill="var(--muted)" font-weight="700">Downtrend</text>
+            <text x="330" y="222" font-size="10" fill="var(--muted)" font-weight="700" text-anchor="middle">Consolidating below 23.6%</text>
+          </svg>
+          <p class="note" style="text-align:center;margin-top:4px;">Price comes down off a downtrend and consolidates below the 23.6% level. Between 11.8% and 23.6% reads as Position-trade territory; the deeper below 11.8%, the closer it is to the swing low itself.</p>
+        </div>
+
+        <div id="fibScenario1" class="fib-scenario" style="display:none;">
+          <svg viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Price breaking up through the 38.2 percent Fibonacci level after consolidating below 23.6 percent">
+            <line x1="20" y1="20" x2="430" y2="20" stroke="var(--muted2)" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="438" y="24" font-size="10" fill="var(--muted)">100% (Swing High)</text>
+            <line x1="20" y1="43.9" x2="430" y2="43.9" stroke="var(--muted3)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="47.9" font-size="10" fill="var(--muted3)" font-weight="700">88.6% &rarr; Retest of High</text>
+            <line x1="20" y1="64.9" x2="430" y2="64.9" stroke="var(--steel)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="68.9" font-size="10" fill="var(--steel)" font-weight="700">78.6% &rarr; Extension / TP zone</text>
+            <line x1="20" y1="100.2" x2="430" y2="100.2" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="104" font-size="10" fill="var(--red)" font-weight="700">61.8% &rarr; MYH / ATH (Golden Ratio)</text>
+            <line x1="20" y1="125" x2="430" y2="125" stroke="var(--navy-text)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="129" font-size="10" fill="var(--navy-text)" font-weight="700">50% &rarr; Swing (target 61.8%)</text>
+            <line x1="20" y1="149.8" x2="430" y2="149.8" stroke="var(--steel)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="153" font-size="10" fill="var(--steel)" font-weight="700">38.2% &rarr; Emerging Trend / Swing</text>
+            <line x1="20" y1="180.4" x2="430" y2="180.4" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="184" font-size="10" fill="var(--green)" font-weight="700">23.6% &rarr; Position</text>
+            <line x1="20" y1="205.2" x2="430" y2="205.2" stroke="var(--muted3)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="209.2" font-size="10" fill="var(--muted3)" font-weight="700">11.8% &rarr; Position starts</text>
+            <line x1="20" y1="230" x2="430" y2="230" stroke="var(--muted2)" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="438" y="234" font-size="10" fill="var(--muted)">0% (Swing Low)</text>
+
+            <polyline points="20,212 55,200 90,188 125,174 160,160 192,146 218,138 245,160 272,135 298,155 325,130 352,150 380,140 405,148 430,133"
+              fill="none" stroke="var(--navy-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="218" cy="138" r="5" fill="var(--steel)"/>
+            <text x="245" y="118" font-size="10" fill="var(--steel)" font-weight="700">Breaks 38.2%</text>
+          </svg>
+          <p class="note" style="text-align:center;margin-top:4px;">Price pushes up and closes through the 38.2% level — this shifts the bias from Position over to an Emerging Trend, tradeable as Swing.</p>
+        </div>
+
+        <div id="fibScenario2" class="fib-scenario" style="display:none;">
+          <svg viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Price breaking up through the 50 percent Fibonacci level">
+            <line x1="20" y1="20" x2="430" y2="20" stroke="var(--muted2)" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="438" y="24" font-size="10" fill="var(--muted)">100% (Swing High)</text>
+            <line x1="20" y1="43.9" x2="430" y2="43.9" stroke="var(--muted3)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="47.9" font-size="10" fill="var(--muted3)" font-weight="700">88.6% &rarr; Retest of High</text>
+            <line x1="20" y1="64.9" x2="430" y2="64.9" stroke="var(--steel)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="68.9" font-size="10" fill="var(--steel)" font-weight="700">78.6% &rarr; Extension / TP zone</text>
+            <line x1="20" y1="100.2" x2="430" y2="100.2" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="104" font-size="10" fill="var(--red)" font-weight="700">61.8% &rarr; MYH / ATH (Golden Ratio)</text>
+            <line x1="20" y1="125" x2="430" y2="125" stroke="var(--navy-text)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="129" font-size="10" fill="var(--navy-text)" font-weight="700">50% &rarr; Swing (target 61.8%)</text>
+            <line x1="20" y1="149.8" x2="430" y2="149.8" stroke="var(--steel)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="153" font-size="10" fill="var(--steel)" font-weight="700">38.2% &rarr; Emerging Trend / Swing</text>
+            <line x1="20" y1="180.4" x2="430" y2="180.4" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="184" font-size="10" fill="var(--green)" font-weight="700">23.6% &rarr; Position</text>
+            <line x1="20" y1="205.2" x2="430" y2="205.2" stroke="var(--muted3)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="209.2" font-size="10" fill="var(--muted3)" font-weight="700">11.8% &rarr; Position starts</text>
+            <line x1="20" y1="230" x2="430" y2="230" stroke="var(--muted2)" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="438" y="234" font-size="10" fill="var(--muted)">0% (Swing Low)</text>
+
+            <polyline points="20,215 55,200 90,185 125,168 160,150 192,132 218,118 245,135 272,112 298,128 325,105 352,122 380,100 405,116 430,108"
+              fill="none" stroke="var(--navy-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="192" cy="132" r="5" fill="var(--navy-text)"/>
+            <text x="222" y="110" font-size="10" fill="var(--navy-text)" font-weight="700">Breaks 50%</text>
+          </svg>
+          <p class="note" style="text-align:center;margin-top:4px;">Price clears the 50% level and holds above it — still Swing, but with smaller remaining upside now that the real target is the 61.8% golden-ratio level.</p>
+        </div>
+
+        <div id="fibScenario3" class="fib-scenario" style="display:none;">
+          <svg viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Price breaking up through the 61.8 percent Fibonacci level, heading toward the swing high">
+            <line x1="20" y1="20" x2="430" y2="20" stroke="var(--muted2)" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="438" y="24" font-size="10" fill="var(--muted)">100% (Swing High)</text>
+            <line x1="20" y1="43.9" x2="430" y2="43.9" stroke="var(--muted3)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="47.9" font-size="10" fill="var(--muted3)" font-weight="700">88.6% &rarr; Retest of High</text>
+            <line x1="20" y1="64.9" x2="430" y2="64.9" stroke="var(--steel)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="68.9" font-size="10" fill="var(--steel)" font-weight="700">78.6% &rarr; Extension / TP zone</text>
+            <line x1="20" y1="100.2" x2="430" y2="100.2" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="104" font-size="10" fill="var(--red)" font-weight="700">61.8% &rarr; MYH / ATH (Golden Ratio)</text>
+            <line x1="20" y1="125" x2="430" y2="125" stroke="var(--navy-text)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="129" font-size="10" fill="var(--navy-text)" font-weight="700">50% &rarr; Swing (target 61.8%)</text>
+            <line x1="20" y1="149.8" x2="430" y2="149.8" stroke="var(--steel)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="153" font-size="10" fill="var(--steel)" font-weight="700">38.2% &rarr; Emerging Trend / Swing</text>
+            <line x1="20" y1="180.4" x2="430" y2="180.4" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <text x="438" y="184" font-size="10" fill="var(--green)" font-weight="700">23.6% &rarr; Position</text>
+            <line x1="20" y1="205.2" x2="430" y2="205.2" stroke="var(--muted3)" stroke-width="1.1" stroke-dasharray="4 3"/>
+            <text x="438" y="209.2" font-size="10" fill="var(--muted3)" font-weight="700">11.8% &rarr; Position starts</text>
+            <line x1="20" y1="230" x2="430" y2="230" stroke="var(--muted2)" stroke-width="1" stroke-dasharray="3 4"/>
+            <text x="438" y="234" font-size="10" fill="var(--muted)">0% (Swing Low)</text>
+
+            <polyline points="20,216 55,198 90,180 125,160 160,138 192,116 218,96 245,110 272,90 298,100 325,82 352,94 380,76 405,88 430,68"
+              fill="none" stroke="var(--navy-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="192" cy="116" r="5" fill="var(--red)"/>
+            <text x="222" y="98" font-size="10" fill="var(--red)" font-weight="700">Breaks 61.8%</text>
+          </svg>
+          <p class="note" style="text-align:center;margin-top:4px;">61.8% is the golden ratio — price gets rejected here most of the time. Only once it closes above AND consolidates above 61.8% does this confirm continuation — the common setup behind MYH / ATH plays, with 88.6% marking the retest of the old swing high itself before new highs.</p>
+        </div>
+
+        <div style="text-align:center;margin-top:10px;">
+          <button class="secondary" type="button" onclick="cycleFibScenario(-1)">&larr; Prev</button>
+          <span id="fibScenarioLabel" style="margin:0 10px;font-weight:700;color:var(--navy-text);font-size:0.85rem;">Scenario 1 of 4 &mdash; Below 23.6% &rarr; Trend Following</span>
+          <button class="secondary" type="button" onclick="cycleFibScenario(1)">Next &rarr;</button>
+        </div>
+      </div>
+
+      <table>
+        <tr><th>Retracement Zone</th><th>Reads As</th></tr>
+        <tr><td>0% &ndash; 11.8%</td><td>Deepest pullback &mdash; closest to the swing low</td></tr>
+        <tr><td>11.8% &ndash; 23.6%</td><td>Position trades</td></tr>
+        <tr><td>23.6% &ndash; 38.2%</td><td>Emerging trend &mdash; Swing</td></tr>
+        <tr><td>38.2% &ndash; 50%</td><td>Swing, smaller upside &mdash; target is 61.8%</td></tr>
+        <tr><td>61.8% (Golden Ratio)</td><td>Usually rejected first time &mdash; close + consolidate above confirms continuation</td></tr>
+        <tr><td>61.8% &ndash; 78.6%</td><td>MYH / ATH play zone</td></tr>
+        <tr><td>78.6%</td><td>Common extension / take-profit zone</td></tr>
+        <tr><td>78.6% &ndash; 88.6%</td><td>MYH / ATH play zone, closer to the old high</td></tr>
+        <tr><td>88.6% &ndash; 100%</td><td>Retesting the swing high itself</td></tr>
+      </table>
+      <p class="note">MYH / ATH = Make-Year-High / All-Time-High plays.</p>
+      <div class="rule important">
+        <span class="badge">GOLDEN RATIO</span>
+        <span class="txt">61.8% rejects price most of the time on the first test. It only confirms as a genuine continuation once price closes above 61.8% AND consolidates there — that's the common setup behind MYH / ATH plays.</span>
+      </div>
+    </div>
+
+    <div class="stage info">
+      <h2>Step 2 — Plot Boxes to Find the TSL Zone</h2>
+      <p class="note">Next, break the big picture down to the medium picture: plot your Darvas-style boxes and locate the <strong>Trend Shift Line (TSL)</strong> — the same TSL/Box concept already used in Stage 4 of the Checklist tab. This narrows your Step 1 bias down to the actual zone price is trading in right now.</p>
+      <div class="rationale">
+        <strong>Recap:</strong> TSL HIGH is the highest Box_Top among the prior boxes to the left — the resistance that, once closed above, confirms a new trend and invalidates the old range. TSL LOW is the Box_Bottom of the current/most recent box — a close below that shifts the trend back down. Price sitting "Near TSL" means it's testing one of these two lines, not yet broken through.
+      </div>
+      <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">Don't jump from the Fib bias straight to an entry — the TSL zone is what tells you WHERE inside that bias price actually is right now.</span></div>
+    </div>
+
+    <div class="stage info">
+      <h2>Step 3 — Drop to 1H and 5-Minute for Entries &amp; Execution</h2>
+      <p class="note">Once your bias (Step 1) and your zone (Step 2) are both set, drop down to the <strong>1H and 5-minute</strong> charts purely for timing — the actual trigger, entry price, and execution. These lower timeframes answer "when do I click buy/sell," not "should I be bullish or bearish."</p>
+
+      <div class="psych-img-wrap">
+        <svg viewBox="0 0 480 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three-step zoom from Weekly or Daily bias, to Box and TSL zone on a medium timeframe, down to 1H and 5-minute charts for entry execution">
+          <rect x="10" y="50" width="130" height="90" rx="8" fill="none" stroke="var(--steel)" stroke-width="2"/>
+          <text x="75" y="40" font-size="11" fill="var(--navy-text)" font-weight="700" text-anchor="middle">STEP 1</text>
+          <text x="75" y="88" font-size="11" fill="var(--navy-text)" font-weight="700" text-anchor="middle">Weekly / Daily</text>
+          <text x="75" y="103" font-size="10" fill="var(--muted)" text-anchor="middle">Fib retracement</text>
+          <text x="75" y="117" font-size="10" fill="var(--muted)" text-anchor="middle">(sets BIAS)</text>
+
+          <line x1="145" y1="95" x2="178" y2="95" stroke="var(--muted)" stroke-width="2"/>
+          <path d="M178,95 L170,90 L170,100 Z" fill="var(--muted)"/>
+
+          <rect x="183" y="50" width="130" height="90" rx="8" fill="none" stroke="var(--steel)" stroke-width="2"/>
+          <text x="248" y="40" font-size="11" fill="var(--navy-text)" font-weight="700" text-anchor="middle">STEP 2</text>
+          <text x="248" y="88" font-size="11" fill="var(--navy-text)" font-weight="700" text-anchor="middle">Boxes / TSL</text>
+          <text x="248" y="103" font-size="10" fill="var(--muted)" text-anchor="middle">medium picture</text>
+          <text x="248" y="117" font-size="10" fill="var(--muted)" text-anchor="middle">(sets ZONE)</text>
+
+          <line x1="318" y1="95" x2="351" y2="95" stroke="var(--muted)" stroke-width="2"/>
+          <path d="M351,95 L343,90 L343,100 Z" fill="var(--muted)"/>
+
+          <rect x="356" y="50" width="114" height="90" rx="8" fill="none" stroke="var(--green)" stroke-width="2.5"/>
+          <text x="413" y="40" font-size="11" fill="var(--green)" font-weight="700" text-anchor="middle">STEP 3</text>
+          <text x="413" y="83" font-size="11" fill="var(--green)" font-weight="700" text-anchor="middle">1H &amp; 5min</text>
+          <text x="413" y="98" font-size="10" fill="var(--muted)" text-anchor="middle">entry trigger</text>
+          <text x="413" y="112" font-size="10" fill="var(--muted)" text-anchor="middle">(EXECUTION)</text>
+
+          <text x="240" y="170" font-size="10" fill="var(--muted)" font-style="italic" text-anchor="middle">Each step narrows the window of time — the bias stays fixed, only the zoom level shrinks.</text>
+        </svg>
+      </div>
+
+      <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">The lower timeframe never overrides the bigger picture. If the 1H/5m setup looks good but Steps 1-2 disagree, that's a lower-probability trade — not a reason to flip your bias.</span></div>
+    </div>
+
+  </div><!-- /tabChartguide -->
+
+  <div id="tabSetups" class="tab-panel" style="display:none;">
+
+    <div class="trader-rules-header">— SETUP PLAYBOOK —</div>
+    <div class="stage info">
+      <p class="note">A living library of your actual trade setups — the specific patterns you trade, and the criteria that separate a valid one from a trap. Starting with one; we'll refine this and add more as we go.</p>
+    </div>
+
+    <div class="stage info">
+      <h2>Setup #1 — Inverse Head &amp; Shoulders (from a Pullback)</h2>
+      <p class="note">A bullish reversal shape forming during a pullback INSIDE an existing uptrend — not a bottom call on a fresh downtrend. Treat it as a continuation setup: the pullback forms the shoulders and head, and the breakout resumes the bigger trend.</p>
+
+      <div class="psych-img-wrap">
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Inverse head and shoulders forming as a pullback inside a larger uptrend, breaking out and then meeting resistance overhead">
+          <line x1="20" y1="195" x2="440" y2="55" stroke="var(--muted2)" stroke-width="1.5" stroke-dasharray="3 5"/>
+          <text x="30" y="58" font-size="10" fill="var(--muted)" font-style="italic">bigger uptrend</text>
+          <line x1="20" y1="75" x2="460" y2="75" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="300" y="68" font-size="11" fill="var(--red)" font-weight="700">Resistance / major Fib level</text>
+          <polyline points="20,195 60,120 100,150 130,135 170,185 205,140 240,160 280,118 320,95 345,82 365,90 390,78 430,60"
+            fill="none" stroke="var(--steel)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="130" y1="135" x2="280" y2="118" stroke="var(--navy-text)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="185" y="112" font-size="10" fill="var(--navy-text)" font-weight="700">Neck Line</text>
+          <circle cx="100" cy="150" r="4" fill="var(--muted)"/>
+          <text x="100" y="172" font-size="10" fill="var(--muted)" text-anchor="middle">Left Shoulder</text>
+          <circle cx="170" cy="185" r="4" fill="var(--red)"/>
+          <text x="170" y="203" font-size="10" fill="var(--red)" font-weight="700" text-anchor="middle">Head</text>
+          <circle cx="240" cy="160" r="4" fill="var(--muted)"/>
+          <text x="248" y="179" font-size="10" fill="var(--muted)" text-anchor="middle">Right Shoulder</text>
+          <circle cx="280" cy="118" r="5" fill="var(--green)"/>
+          <text x="280" y="106" font-size="10" fill="var(--green)" font-weight="700" text-anchor="middle">Breakout</text>
+          <circle cx="365" cy="90" r="5" fill="var(--red)"/>
+          <text x="365" y="38" font-size="10" fill="var(--red)" text-anchor="middle">Pattern meets</text>
+          <text x="365" y="50" font-size="10" fill="var(--red)" text-anchor="middle">resistance here</text>
+        </svg>
+        <p class="note" style="text-align:center;margin-top:4px;">The pattern gives direction. The level sitting overhead decides whether the breakout actually runs — check what's above the neckline before trusting it.</p>
+      </div>
+
+      <h3>Step 1 — Confirm the Context</h3>
+      <label class="item"><input type="checkbox" id="setupIHS_higherTF"> Higher timeframe (4H/Daily) trend is UP, or this is a pullback inside an uptrend — not a fresh downtrend</label>
+      <label class="item"><input type="checkbox" id="setupIHS_pullbackDepth"> This is a genuine pullback/pause, not a trend change — checked the MA20/50/100 stack on 4H/Daily</label>
+      <div class="rule neutral"><span class="badge">WHY</span><span class="txt">An inverse H&amp;S breaking in the direction of the bigger trend is a continuation play. One fighting the bigger trend is a much lower-probability reversal bet.</span></div>
+
+      <h3>Step 2 — Validate the Structure</h3>
+      <label class="item"><input type="checkbox" id="setupIHS_headLower"> Head is clearly lower than BOTH shoulders</label>
+      <label class="item"><input type="checkbox" id="setupIHS_shouldersSymmetric"> Left and Right Shoulders are roughly similar in depth and duration</label>
+      <label class="item"><input type="checkbox" id="setupIHS_neckline"> Neckline drawn connecting the two peaks (Left Shoulder&ndash;Head and Head&ndash;Right Shoulder) &mdash; a sloped neckline is fine</label>
+
+      <h3>Step 3 — Check What's Overhead</h3>
+      <label class="item"><input type="checkbox" id="setupIHS_resistanceCheck"> Identified the next resistance above the neckline (prior swing high, Fib level, prior box top) &mdash; is the breakout running into it, or is it clear?</label>
+      <div class="rule important"><span class="badge">LESSON LEARNED</span><span class="txt">A breakout landing right on a major Fib level (e.g. the 0.5 retracement of the bigger move) is NOT the same as a breakout into open space. Expect a stall or a rejection test there, even when the pattern itself is valid.</span></div>
+
+      <h3>Step 4 — Wait for Real Confirmation</h3>
+      <label class="item"><input type="checkbox" id="setupIHS_closeNotWick"> Neckline break confirmed by a CLOSE on a higher timeframe (15m/1H/4H) &mdash; not just a wick on a lower timeframe</label>
+      <label class="item"><input type="checkbox" id="setupIHS_volume"> Volume expanded on the breakout candle versus the pattern's formation</label>
+      <label class="item"><input type="checkbox" id="setupIHS_retest"> (Preferred, not required) Neckline held as support on a retest</label>
+      <div class="rule"><span class="badge">TRADER RULE</span><span class="txt">A pattern that pokes above resistance intraday and closes back inside the range is NOT a confirmed breakout &mdash; wait for the close.</span></div>
+
+      <h3>Step 5 — Plan the Trade</h3>
+      <label class="item"><input type="checkbox" id="setupIHS_invalidation"> Invalidation defined: a close back below the Right Shoulder low (or the neckline, whichever is hit first)</label>
+      <label class="item"><input type="checkbox" id="setupIHS_entryType"> Entry mapped to Stage 5 &mdash; E3 (closed above Box Top / neckline) or E4 (retest holding)</label>
+      <p class="note">Once this setup passes, feed the entry, SL and target into Stage 6 as usual.</p>
+
+      <div class="wisdom-quote">The pattern tells you WHERE to look. The higher timeframe trend and the level overhead tell you whether to actually take it.</div>
+    </div>
+
+  </div><!-- /tabSetups -->
+
+  <div id="tabDailytarget" class="tab-panel" style="display:none;">
+
+    <div class="trader-rules-header">— DAILY TARGET —</div>
+    <div class="stage info">
+      <p class="note">Breaks your monthly income goal down into a daily number, tracks what you've actually logged this month, and tells you what you need to average on the days left to still hit it. Resets automatically at the start of each new month — your Monthly Goal and Trading Days settings carry over, the log does not.</p>
+    </div>
+
+    <div class="stage" id="dtGoalStage">
+      <h2>Monthly Goal</h2>
+      <div class="row">
+        <div class="field"><label>Monthly goal (USD)</label><input type="number" id="dtMonthlyGoal" step="any" value="2000" oninput="renderDailyTarget()"></div>
+        <div class="field"><label>Trading days this month</label><input type="number" id="dtTradingDays" step="1" min="1" placeholder="e.g. 22" oninput="renderDailyTarget()"></div>
+      </div>
+      <p class="note">Trading days = however many days you actually plan to trade this month (every calendar day if crypto 24/7, or fewer if you skip weekends/rest days). Leave blank to use every calendar day in the month.</p>
+      <div class="calc-result neutral" id="dtDailyTargetResult">Enter your monthly goal to see today's target.</div>
+    </div>
+
+    <div class="stage" id="dtProgressStage">
+      <h2>This Month's Progress <span class="tag info" id="dtMonthLabel"></span></h2>
+
+      <h3>Log a Trade</h3>
+      <div class="row">
+        <div class="field"><label>Date</label><input type="date" id="dtTradeDate"></div>
+        <div class="field"><label>Crypto</label><input type="text" id="dtTradeCrypto" placeholder="e.g. BTC"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Entry price</label><input type="number" id="dtTradeEntry" step="any"></div>
+        <div class="field"><label>Exit price</label><input type="number" id="dtTradeExit" step="any"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Direction</label>
+          <select id="dtTradeDirection">
+            <option value="long">Long</option>
+            <option value="short">Short</option>
+          </select>
+        </div>
+        <div class="field"><label>Position size (USD notional)</label><input type="number" id="dtTradeSize" step="any" placeholder="e.g. 2000"></div>
+      </div>
+      <p class="note">Position size is needed to turn the entry/exit price move into an actual $ profit — it's your notional (margin &times; leverage), not just your margin. Profit ($) and Profit (%) are calculated automatically when you log the trade.</p>
+      <button class="primary" onclick="logTrade()">Log Trade</button>
+
+      <div class="calc-result neutral" id="dtProgressResult" style="margin-top:14px;">Log a trade to see your progress.</div>
+
+      <table id="dtLogTable" style="display:none;"></table>
+      <div style="margin-top:8px;">
+        <button class="secondary" onclick="exportDailyTargetCsv()">Export Month's Log to CSV</button>
+        <button class="secondary" onclick="clearDailyTargetLog()">Clear This Month's Log</button>
+      </div>
+    </div>
+
+  </div><!-- /tabDailytarget -->
+
+  </div>
+  <footer class="note" style="text-align:center;margin-top:28px">Everything you type here (planner, checklist, targets) is stored only in this browser — use <b>Back up</b> to keep a copy.</footer>
 </div>
 <div class="tip" id="tip" role="tooltip"></div>
 
+<script>
+/* ===== My Trading Partner: checklist, daily target, playbook ===== */
+function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+
+const CHECK_IDS = ['newsCheck','volCheck','workDone','prayerDone','tokenMA_Weekly_ZS','tokenMA_Weekly','tokenMA_Daily','tokenMA_Daily_Stack','tokenMA_4H','tokenMA_1H','invalidationDefined',
+  'e1Validated','e1SLPoint','e1MAConfluence','e2Confirmed','e2MAConfluence','e3Closed1h','e3Closed4h','e4Retest',
+  'leverageOk','liqBuffer','posLimit','corrLimit','dailyLimit','slSet','journaled','earlyExit','breakeven','partials','trailing',
+  'setupIHS_higherTF','setupIHS_pullbackDepth','setupIHS_headLower','setupIHS_shouldersSymmetric','setupIHS_neckline',
+  'setupIHS_resistanceCheck','setupIHS_closeNotWick','setupIHS_volume','setupIHS_retest','setupIHS_invalidation','setupIHS_entryType'];
+const VALUE_IDS = ['emotion','sleep','btcBias','btcRSIZone','btcMoveDaily','btcMoveOther','btcBoxPosition','tokenName','capTier','tradingObjective','tokenMove','tokenRSI14',
+  'entryType','entryPx','direction','slPx','tpPx','acctSize','riskPct','leverage','marginMode','slBufferPct',
+  'invalidationCriteria','invalidationAction',
+  'bullScenario','bearScenario','sidewaysScenario','sidewaysHoldValue','sidewaysHoldUnit'];
+
+function loadState() {
+  localStorage.removeItem('tradingLog'); // one-time cleanup: the old trade log is no longer used
+  const saved = localStorage.getItem('tradingChecklistState');
+  if (!saved) return;
+  try {
+    const s = JSON.parse(saved);
+    Object.keys(s).forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.type === 'checkbox') el.checked = s[id];
+      else el.value = s[id];
+    });
+  } catch(e) {}
+}
+
+function getTodayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+}
+
+function loadDailyCounts() {
+  const storedDate = localStorage.getItem('killSwitchDate');
+  const today = getTodayStr();
+  if (storedDate !== today) {
+    localStorage.setItem('killSwitchDate', today);
+    localStorage.setItem('killSwitchWins', '0');
+    localStorage.setItem('killSwitchLosses', '0');
+  }
+  document.getElementById('winsCount').textContent = localStorage.getItem('killSwitchWins') || '0';
+  document.getElementById('lossesCount').textContent = localStorage.getItem('killSwitchLosses') || '0';
+}
+
+function adjustCount(type, delta) {
+  const key = type === 'wins' ? 'killSwitchWins' : 'killSwitchLosses';
+  let val = parseInt(localStorage.getItem(key) || '0', 10) + delta;
+  if (val < 0) val = 0;
+  localStorage.setItem(key, String(val));
+  document.getElementById(type === 'wins' ? 'winsCount' : 'lossesCount').textContent = val;
+  evaluate();
+}
+
+function isKillSwitchActive() {
+  const wins = parseInt(localStorage.getItem('killSwitchWins') || '0', 10);
+  const losses = parseInt(localStorage.getItem('killSwitchLosses') || '0', 10);
+  return wins >= 2 || losses >= 2;
+}
+
+function updateKillSwitchTag() {
+  const tag = document.getElementById('killTag');
+  const active = isKillSwitchActive();
+  tag.textContent = active ? 'LOCKED' : 'ACTIVE';
+  tag.className = 'tag ' + (active ? 'fail' : 'info');
+  document.getElementById('killSwitchStage').className = 'stage' + (active ? ' fail' : '');
+  applyKillSwitchLock(active);
+}
+
+function applyKillSwitchLock(locked) {
+  // Locks Stages 1-7 (the pre-trade decision chain) but leaves During-Trade
+  // Management and Post-Trade Review usable, since those manage a position
+  // you may already be in - the kill switch blocks NEW trades, not managing one.
+  ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7', 'stageExport'].forEach(id => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.querySelectorAll('input, select, textarea, button').forEach(el => { el.disabled = locked; });
+    container.style.opacity = locked ? '0.5' : '1';
+  });
+}
+
+function saveState() {
+  const s = {};
+  CHECK_IDS.forEach(id => { const el = document.getElementById(id); if (el) s[id] = el.checked; });
+  VALUE_IDS.forEach(id => { const el = document.getElementById(id); if (el) s[id] = el.value; });
+  localStorage.setItem('tradingChecklistState', JSON.stringify(s));
+}
+
+function setTag(stageNum, pass) {
+  const tag = document.getElementById('tag' + stageNum);
+  const stage = document.getElementById('stage' + stageNum);
+  tag.textContent = pass ? 'PASS' : 'FAIL';
+  tag.className = 'tag ' + (pass ? 'pass' : 'fail');
+  stage.className = 'stage ' + (pass ? 'pass' : 'fail');
+}
+
+
+
+function autoCalcSLTP() {
+  const entry = parseFloat(document.getElementById('entryPx').value);
+  const leverage = parseFloat(document.getElementById('leverage').value);
+  const direction = document.getElementById('direction').value;
+  const bufferPct = parseFloat(document.getElementById('slBufferPct').value);
+  const acct = parseFloat(document.getElementById('acctSize').value);
+  const riskPct = parseFloat(document.getElementById('riskPct').value);
+
+  if (isNaN(entry) || entry <= 0) { alert('Enter an Entry price first.'); return; }
+  if (isNaN(leverage) || leverage <= 0) { alert('Enter Leverage first.'); return; }
+  if (!direction) { alert('Select Long or Short first.'); return; }
+  if (isNaN(bufferPct) || bufferPct <= 0 || bufferPct >= 100) { alert('SL buffer % should be between 0 and 100.'); return; }
+  if (isNaN(acct) || acct <= 0) { alert('Enter your Account size first — it’s used to size the position off this stop distance.'); return; }
+  if (isNaN(riskPct) || riskPct <= 0) { alert('Enter your Risk per trade % first.'); return; }
+
+  const liqDistancePct = 100 / leverage;
+  const stopDistancePct = liqDistancePct * (bufferPct / 100);
+  const stopDistance = entry * (stopDistancePct / 100);
+
+  let sl, tp;
+  if (direction === 'long') {
+    sl = entry - stopDistance;
+    tp = entry + 3 * stopDistance;
+  } else {
+    sl = entry + stopDistance;
+    tp = entry - 3 * stopDistance;
+  }
+
+  document.getElementById('slPx').value = sl.toFixed(6);
+  document.getElementById('tpPx').value = tp.toFixed(6);
+
+  // Apply the Account size / Risk % logic right here, using the stop distance we just derived,
+  // so the auto-calc result shows the actual position this stop implies — not just SL/TP prices.
+  const riskAmt = acct * (riskPct / 100);
+  const units = riskAmt / stopDistance;
+  const notional = units * entry;
+  const margin = notional / leverage;
+  const summary = document.getElementById('autoCalcSummary');
+  summary.style.display = 'block';
+  if (margin > acct) {
+    summary.className = 'calc-result bad';
+    summary.innerHTML = `Risking $${riskAmt.toFixed(2)} (${riskPct}% of $${acct.toFixed(2)}) at this stop distance needs ~$${margin.toFixed(2)} margin at ${leverage}x — that's MORE than your account size. Raise leverage, widen the buffer, or lower risk %.`;
+  } else {
+    summary.className = 'calc-result ok';
+    summary.innerHTML = `Risking $${riskAmt.toFixed(2)} (${riskPct}% of $${acct.toFixed(2)}) → position size ≈ ${units.toFixed(4)} units (~$${notional.toFixed(2)} notional, ~$${margin.toFixed(2)} margin at ${leverage}x).`;
+  }
+
+  evaluate();
+}
+
+function calcRR() {
+  const e = parseFloat(document.getElementById('entryPx').value);
+  const sl = parseFloat(document.getElementById('slPx').value);
+  const tp = parseFloat(document.getElementById('tpPx').value);
+  const direction = document.getElementById('direction').value;
+  const box = document.getElementById('rrResult');
+  if (isNaN(e) || isNaN(sl) || isNaN(tp)) {
+    box.className = 'calc-result neutral';
+    box.textContent = 'Enter entry, stop-loss and target to calculate R:R.';
+    return null;
+  }
+  if (direction === 'long' && (sl >= e || tp <= e)) {
+    box.className = 'calc-result bad';
+    box.textContent = 'For a LONG, Stop-Loss must be BELOW entry and Target must be ABOVE entry. Check your values.';
+    return null;
+  }
+  if (direction === 'short' && (sl <= e || tp >= e)) {
+    box.className = 'calc-result bad';
+    box.textContent = 'For a SHORT, Stop-Loss must be ABOVE entry and Target must be BELOW entry. Check your values.';
+    return null;
+  }
+  const risk = Math.abs(e - sl);
+  const reward = Math.abs(tp - e);
+  if (risk === 0) { box.className = 'calc-result bad'; box.textContent = 'Stop-loss cannot equal entry price.'; return null; }
+  const rr = reward / risk;
+  const pass = rr >= 3;
+  box.className = 'calc-result ' + (pass ? 'ok' : 'bad');
+  box.textContent = `R:R = 1 : ${rr.toFixed(2)}  ${pass ? '(meets 1:3 minimum)' : '(below 1:3 minimum — does not qualify)'}`;
+  return pass;
+}
+
+function calcSize() {
+  const acct = parseFloat(document.getElementById('acctSize').value);
+  const riskPct = parseFloat(document.getElementById('riskPct').value);
+  const e = parseFloat(document.getElementById('entryPx').value);
+  const sl = parseFloat(document.getElementById('slPx').value);
+  const box = document.getElementById('sizeResult');
+  if (isNaN(acct) || isNaN(riskPct) || isNaN(e) || isNaN(sl) || e === sl) {
+    box.className = 'calc-result neutral';
+    box.textContent = 'Enter account size, risk %, entry and stop-loss to calculate position size.';
+    return;
+  }
+  const riskAmt = acct * (riskPct / 100);
+  const perUnitRisk = Math.abs(e - sl);
+  const units = riskAmt / perUnitRisk;
+  const notional = units * e;
+  box.className = 'calc-result ok';
+  box.textContent = `Risking $${riskAmt.toFixed(2)} → position size ≈ ${units.toFixed(4)} units (≈ $${notional.toFixed(2)} notional)`;
+}
+
+function renderLeverageTable() {
+  const acct = parseFloat(document.getElementById('acctSize').value);
+  const riskPct = parseFloat(document.getElementById('riskPct').value);
+  const e = parseFloat(document.getElementById('entryPx').value);
+  const sl = parseFloat(document.getElementById('slPx').value);
+  const wrap = document.getElementById('leverageTableWrap');
+
+  if (isNaN(acct) || isNaN(riskPct) || isNaN(e) || isNaN(sl) || e === sl) {
+    wrap.innerHTML = '<p class="note">Enter entry, stop-loss, account size and risk % above to see leverage scenarios.</p>';
+    return;
+  }
+
+  const riskAmt = acct * (riskPct / 100);
+  const stopDistance = Math.abs(e - sl);
+  const stopDistancePct = (stopDistance / e) * 100;
+  const units = riskAmt / stopDistance;
+  const notional = units * e;
+
+  const presets = [2, 3, 5, 10, 20, 50];
+  const customLev = parseFloat(document.getElementById('leverage').value);
+  const hasCustom = !isNaN(customLev) && customLev > 0;
+  const allLevs = [...new Set([...(hasCustom ? [customLev] : []), ...presets])].sort((a, b) => a - b);
+
+  let rows = '';
+  allLevs.forEach(L => {
+    const marginRequired = notional / L;
+    const marginPctAcct = (marginRequired / acct) * 100;
+    const liqDistancePct = 100 / L;
+    const exceedsAccount = marginRequired > acct;
+    const safe = liqDistancePct > stopDistancePct && !exceedsAccount;
+    const rowClass = (hasCustom && L === customLev ? 'custom-lev ' : '') + (safe ? 'safe' : 'unsafe');
+    const statusText = exceedsAccount ? 'EXCEEDS ACCOUNT' : (safe ? 'SAFE' : 'UNSAFE');
+    rows += `<tr class="${rowClass}">
+      <td>${L}x${hasCustom && L === customLev ? ' (yours)' : ''}</td>
+      <td>$${marginRequired.toFixed(2)}</td>
+      <td>${marginPctAcct.toFixed(1)}%</td>
+      <td>~${liqDistancePct.toFixed(1)}%</td>
+      <td>${stopDistancePct.toFixed(1)}%</td>
+      <td class="status">${statusText}</td>
+    </tr>`;
+  });
+
+  wrap.innerHTML = `
+    <table>
+      <thead><tr><th>Leverage</th><th>Margin Req.</th><th>Margin % of Acct</th><th>Approx. Liq. Distance</th><th>Your SL Distance</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="note">SAFE = liquidation sits further away than your stop-loss, so your SL triggers first. UNSAFE = liquidation could hit before your stop-loss ever does — that leverage defeats the point of having a stop.</p>
+  `;
+}
+
+function evaluate() {
+  const emotion = document.getElementById('emotion').value;
+  const sleep = parseFloat(document.getElementById('sleep').value);
+  const workDone = document.getElementById('workDone').checked;
+  const prayerDone = document.getElementById('prayerDone').checked;
+  const s1pass = emotion === 'good' && !isNaN(sleep) && sleep >= 6 && workDone && prayerDone;
+  setTag(1, s1pass);
+
+  const btcBias = document.getElementById('btcBias').value;
+  const btcMoveDaily = document.getElementById('btcMoveDaily').value;
+  document.getElementById('btcMoveOtherWrap').style.display = btcMoveDaily === 'others' ? 'block' : 'none';
+  const btcMoveOther = document.getElementById('btcMoveOther').value.trim();
+  const btcMoveSpecified = btcMoveDaily && (btcMoveDaily !== 'others' || btcMoveOther.length > 0);
+
+  // Bearish BTC hard-fails Stage 2 outright. Sideways and Others still pass
+  // but surface a caution note — trade allowed, just with extra care.
+  const btcMoveBearish = btcMoveDaily === 'bearish';
+  const btcMoveNeedsCaution = btcMoveDaily === 'sideways' || btcMoveDaily === 'others';
+  document.getElementById('btcMoveBearishFail').style.display = btcMoveBearish ? 'block' : 'none';
+  const cautionEl = document.getElementById('btcMoveCaution');
+  cautionEl.style.display = btcMoveNeedsCaution ? 'block' : 'none';
+  if (btcMoveNeedsCaution) {
+    document.getElementById('btcMoveCautionTxt').textContent = btcMoveDaily === 'sideways'
+      ? 'BTC is sideways — this still passes, but be extra careful. Sideways BTC often means chop, not real follow-through. There is scarcity in the market or there is fear in the market, so adjust your expectations, take profit, or sell objectively.'
+      : 'BTC move is unclassified ("Others") — this still passes, but be extra careful since it doesn\'t fit a clean Bullish/Bearish/Sideways read.';
+  }
+
+  const btcMoveOk = btcMoveSpecified && !btcMoveBearish;
+  const s2pass = !!btcBias && btcMoveOk;
+  setTag(2, s2pass);
+
+  // DB Position — record-only, doesn't affect s2pass.
+  const btcBoxPosition = document.getElementById('btcBoxPosition').value;
+  const btcBoxNoteEl = document.getElementById('btcBoxNote');
+  const btcBoxBadgeEl = document.getElementById('btcBoxBadge');
+  const btcBoxNoteTxtEl = document.getElementById('btcBoxNoteTxt');
+  if (btcBoxPosition === 'belowDB50') {
+    btcBoxNoteEl.className = 'rule';
+    btcBoxBadgeEl.textContent = 'CAUTION — E1';
+    btcBoxNoteTxtEl.textContent = 'Below DB50 — opportunities for E1 entries (support of Darvas Box Bottom), but beware of possible breakdown.';
+    btcBoxNoteEl.style.display = 'block';
+  } else if (btcBoxPosition === 'crossDB50') {
+    btcBoxNoteEl.className = 'rule neutral';
+    btcBoxBadgeEl.textContent = 'E2 SETUP';
+    btcBoxNoteTxtEl.textContent = 'Cross DB50 — opportunities for E2 entries (DB50 break, retest, or held).';
+    btcBoxNoteEl.style.display = 'block';
+  } else if (btcBoxPosition === 'aboveDB50') {
+    btcBoxNoteEl.className = 'rule neutral';
+    btcBoxBadgeEl.textContent = 'E3 SETUP';
+    btcBoxNoteTxtEl.textContent = 'Above DB50 — look for a mini Darvas box or buy on a breakout of Box Top (E3 opportunities).';
+    btcBoxNoteEl.style.display = 'block';
+  } else {
+    btcBoxNoteEl.style.display = 'none';
+  }
+
+  // Market Cap Tier is record-only now — it doesn't gate Stage 3.
+  const tokenName = document.getElementById('tokenName').value.trim();
+  const tier = document.getElementById('capTier').value;
+  const tierBox = document.getElementById('tierResult');
+  tierBox.className = 'tier-result neutral';
+  tierBox.textContent = tier ? tier : 'Select a tier.';
+  const s3pass = !!tokenName;
+  setTag(3, s3pass);
+
+  // Objective note — dynamic: shows only the guidance that matches what's selected.
+  const tradingObjective = document.getElementById('tradingObjective').value;
+  const objBadgeEl = document.getElementById('objectiveNoteBadge');
+  const objTxtEl = document.getElementById('objectiveNoteTxt');
+  if (tradingObjective === 'Swing') {
+    objBadgeEl.textContent = 'IMPORTANT — SWING';
+    objTxtEl.textContent = 'Swing objective: read your bias off the Daily chart only. Do not drop down to the Hourly — it’s noise at your holding horizon and will shake you out of a position that was never actually invalidated.';
+  } else if (tradingObjective === 'Position/TF') {
+    objBadgeEl.textContent = 'IMPORTANT — POSITION/TF';
+    objTxtEl.textContent = 'Position/Trend Following objective: read your bias off the Weekly chart. You’re following the larger structural trend here — the Daily (let alone the Hourly) is too much noise for a holding horizon this long and will pull you out early.';
+  } else if (tradingObjective === 'Scalping') {
+    objBadgeEl.textContent = 'IMPORTANT — SCALPING';
+    objTxtEl.textContent = 'Scalping objective: read your bias off the Hourly chart instead, since that matches how long you’re actually in the trade.';
+  } else {
+    objBadgeEl.textContent = 'IMPORTANT';
+    objTxtEl.textContent = 'Match your bias timeframe to your trading objective, every time. Position/Trend Following: Weekly chart. Swing: Daily chart. Scalping: Hourly chart. Select your objective above and this note will update.';
+  }
+
+  const tokenMA_Weekly_ZS = document.getElementById('tokenMA_Weekly_ZS').checked;
+  const tokenMA_Weekly = document.getElementById('tokenMA_Weekly').checked;
+  const tokenMA_Daily = document.getElementById('tokenMA_Daily').checked;
+  const tokenMA_Daily_Stack = document.getElementById('tokenMA_Daily_Stack').checked;
+  const tokenMA_4H = document.getElementById('tokenMA_4H').checked;
+  const tokenMA_1H = document.getElementById('tokenMA_1H').checked;
+  const tokenMove = document.getElementById('tokenMove').value;
+  const s4moveOk = tokenMove === 'Near TSL' || tokenMove === 'Stage 1' || tokenMove === 'Stage 2' || tokenMove === 'Stage 3' || tokenMove === 'Stage 4' || tokenMove === 'Stage 5' || tokenMove === 'Stage 6';
+  // Daily: price above MA100 (ZS) is the required gate. Weekly ZS, Weekly/Daily/4H/1H full-stack checks are record-only.
+  const s4pass = tokenMA_Daily && s4moveOk;
+  setTag(4, s4pass);
+
+  const entryType = document.getElementById('entryType').value;
+  ['e1Checks','e2Checks','e3Checks','e4Checks'].forEach(id => document.getElementById(id).style.display = 'none');
+  let s5pass = false;
+  if (entryType === 'E1') {
+    document.getElementById('e1Checks').style.display = 'block';
+    s5pass = document.getElementById('e1Validated').checked && document.getElementById('e1SLPoint').checked && document.getElementById('e1MAConfluence').checked;
+  } else if (entryType === 'E2') {
+    document.getElementById('e2Checks').style.display = 'block';
+    s5pass = document.getElementById('e2Confirmed').checked && document.getElementById('e2MAConfluence').checked;
+  } else if (entryType === 'E3') {
+    document.getElementById('e3Checks').style.display = 'block';
+    s5pass = document.getElementById('e3Closed1h').checked && document.getElementById('e3Closed4h').checked;
+  } else if (entryType === 'E4') {
+    document.getElementById('e4Checks').style.display = 'block';
+    s5pass = document.getElementById('e4Retest').checked;
+  }
+  setTag(5, s5pass);
+
+  const rrPass = calcRR();
+  calcSize();
+  renderLeverageTable();
+  const marginMode = document.getElementById('marginMode').value;
+  document.getElementById('crossWarn').style.display = marginMode === 'cross' ? 'block' : 'none';
+  const leverageOk = document.getElementById('leverageOk').checked;
+  const liqBuffer = document.getElementById('liqBuffer').checked;
+  const posLimit = document.getElementById('posLimit').checked;
+  const corrLimit = document.getElementById('corrLimit').checked;
+  const dailyLimit = document.getElementById('dailyLimit').checked;
+  const invalidationDefined = document.getElementById('invalidationDefined').checked;
+  const s6pass = rrPass === true && leverageOk && liqBuffer && posLimit && corrLimit && dailyLimit && invalidationDefined;
+  setTag(6, s6pass);
+
+  const slSet = document.getElementById('slSet').checked;
+  const journaled = document.getElementById('journaled').checked;
+  const s7pass = slSet && journaled;
+  setTag(7, s7pass);
+
+  const banner = document.getElementById('banner');
+  updateKillSwitchTag();
+  const killActive = isKillSwitchActive();
+  const allPass = s1pass && s2pass && s3pass && s4pass && s5pass && s6pass && s7pass;
+  if (killActive) {
+    banner.className = 'banner no';
+    banner.innerHTML = '\uD83D\uDED1 DONE FOR THE DAY<span class="reason">Kill switch triggered \u2014 2 wins or 2 losses today. No more trades, no exceptions.</span>';
+  } else if (allPass) {
+    banner.className = 'banner go';
+    banner.innerHTML = 'GO — ALL GATES PASSED<span class="reason">Every stage confirmed. Trade per your plan.</span>';
+  } else {
+    const failed = [];
+    if (!s1pass) failed.push('Readiness');
+    if (!s2pass) failed.push('BTC Bias');
+    if (!s3pass) failed.push('Universe Filter');
+    if (!s4pass) failed.push('Token Trend');
+    if (!s5pass) failed.push('Entry Type');
+    if (!s6pass) failed.push('Risk Management');
+    if (!s7pass) failed.push('Execution');
+    banner.className = 'banner no';
+    banner.innerHTML = 'NO TRADE<span class="reason">Failing: ' + failed.join(', ') + '</span>';
+  }
+  const copyBtn = document.getElementById('copyTradePlanBtn');
+  const copyNote = document.getElementById('copyDisabledNote');
+  const canCopy = allPass && !killActive;
+  copyBtn.disabled = !canCopy;
+  copyBtn.title = canCopy ? '' : 'Disabled until every stage passes (or the kill switch clears).';
+  copyNote.style.display = canCopy ? 'none' : 'block';
+
+  refreshTradePlan();
+  saveState();
+}
+
+function fmtBool(b) { return b ? 'Yes' : 'No'; }
+
+function buildTradePlanText() {
+  const tokenName = document.getElementById('tokenName').value.trim() || '(token not set)';
+  const direction = document.getElementById('direction').value;
+  const directionLabel = direction === 'long' ? 'LONG' : direction === 'short' ? 'SHORT' : '(direction not set)';
+  const tier = document.getElementById('capTier').value;
+  const tradingObjective = document.getElementById('tradingObjective').value;
+
+  const btcBias = document.getElementById('btcBias').value;
+  const btcMoveDaily = document.getElementById('btcMoveDaily').value;
+  const btcMoveOther = document.getElementById('btcMoveOther').value.trim();
+  const btcMoveLabel = btcMoveDaily === 'others'
+    ? (btcMoveOther || 'Others (unspecified)')
+    : (btcMoveDaily ? btcMoveDaily.charAt(0).toUpperCase() + btcMoveDaily.slice(1) : '(not set)');
+
+  const tokenMA_Weekly_ZS = document.getElementById('tokenMA_Weekly_ZS').checked;
+  const tokenMA_Weekly = document.getElementById('tokenMA_Weekly').checked;
+  const tokenMA_Daily = document.getElementById('tokenMA_Daily').checked;
+  const tokenMA_Daily_Stack = document.getElementById('tokenMA_Daily_Stack').checked;
+  const tokenMA_4H = document.getElementById('tokenMA_4H').checked;
+  const tokenMA_1H = document.getElementById('tokenMA_1H').checked;
+  const tokenMove = document.getElementById('tokenMove').value;
+  const moveDesc = tokenMove || '(not set)';
+
+  const entryType = document.getElementById('entryType').value;
+  let entryValidation = '(not set)';
+  if (entryType === 'E1') {
+    entryValidation = `E1 - Support of Box Bottom \u2014 validated: ${fmtBool(document.getElementById('e1Validated').checked)}, invalidation point set: ${fmtBool(document.getElementById('e1SLPoint').checked)}, MA confluence: ${fmtBool(document.getElementById('e1MAConfluence').checked)}`;
+  } else if (entryType === 'E2') {
+    entryValidation = `E2 - DB50 break or retest \u2014 confirmed: ${fmtBool(document.getElementById('e2Confirmed').checked)}, MA confluence: ${fmtBool(document.getElementById('e2MAConfluence').checked)}`;
+  } else if (entryType === 'E3') {
+    entryValidation = `E3 - Box Top break \u2014 1H closed above: ${fmtBool(document.getElementById('e3Closed1h').checked)}, 4H closed above: ${fmtBool(document.getElementById('e3Closed4h').checked)}`;
+  } else if (entryType === 'E4') {
+    entryValidation = `E4 - Box Top retest \u2014 holding as support: ${fmtBool(document.getElementById('e4Retest').checked)}`;
+  }
+
+  const entry = parseFloat(document.getElementById('entryPx').value);
+  const sl = parseFloat(document.getElementById('slPx').value);
+  const tp = parseFloat(document.getElementById('tpPx').value);
+  const slPct = (!isNaN(entry) && !isNaN(sl) && entry) ? ((sl - entry) / entry * 100) : null;
+  const tpPct = (!isNaN(entry) && !isNaN(tp) && entry) ? ((tp - entry) / entry * 100) : null;
+  const rr = (!isNaN(entry) && !isNaN(sl) && !isNaN(tp) && entry !== sl) ? (Math.abs(tp - entry) / Math.abs(entry - sl)) : null;
+
+  const acct = parseFloat(document.getElementById('acctSize').value);
+  const riskPct = parseFloat(document.getElementById('riskPct').value);
+  const leverage = parseFloat(document.getElementById('leverage').value);
+  const marginMode = document.getElementById('marginMode').value;
+  let riskAmt = null, units = null, notional = null, margin = null, marginPctAcct = null, liqSafe = null;
+  if (!isNaN(acct) && !isNaN(riskPct) && !isNaN(entry) && !isNaN(sl) && entry !== sl) {
+    riskAmt = acct * (riskPct / 100);
+    const stopDist = Math.abs(entry - sl);
+    units = riskAmt / stopDist;
+    notional = units * entry;
+    if (!isNaN(leverage) && leverage > 0) {
+      margin = notional / leverage;
+      marginPctAcct = (margin / acct) * 100;
+      const liqPct = 100 / leverage;
+      const stopDistPct = (stopDist / entry) * 100;
+      liqSafe = liqPct > stopDistPct;
+    }
+  }
+
+  const banner = document.getElementById('banner');
+  const statusText = banner.innerText.replace(/\s+/g, ' ').trim();
+
+  const lines = [];
+  lines.push(`\uD83D\uDCCB TRADE PLAN \u2014 ${tokenName} (${directionLabel})`);
+  lines.push(`\uD83D\uDDD3\uFE0F ${new Date().toLocaleString()}`);
+  lines.push('');
+  lines.push('**Market Context**');
+  lines.push(`\u2022 BTC Bias: ${btcBias || '(not set)'} | BTC RSI Zone: ${document.getElementById('btcRSIZone').value || '(not set)'} | BTC Move: ${btcMoveLabel}`);
+  lines.push(`\u2022 BTC Box Position: ${document.getElementById('btcBoxPosition').value || '(not set)'}`);
+  lines.push(`\u2022 Market Cap Tier: ${tier || '(not set)'}`);
+  lines.push(`\u2022 Trading Objective: ${tradingObjective || '(not set)'}`);
+  lines.push('');
+  lines.push('**Setup**');
+  lines.push(`\u2022 Token MA Trend \u2014 Weekly (ZS): ${fmtBool(tokenMA_Weekly_ZS)} | Weekly (MA20>MA50>MA100): ${fmtBool(tokenMA_Weekly)} | Daily (ZS): ${fmtBool(tokenMA_Daily)} | Daily (MA20>MA50>MA100): ${fmtBool(tokenMA_Daily_Stack)} | 4H: ${fmtBool(tokenMA_4H)} | 1H: ${fmtBool(tokenMA_1H)}`);
+  lines.push(`\u2022 Token RSI Zone: ${document.getElementById('tokenRSI14').value || '-'}`);
+  lines.push(`\u2022 Move Type: ${moveDesc}`);
+  lines.push(`\u2022 Entry Validation: ${entryValidation}`);
+  lines.push('');
+  lines.push('**Trade Levels**');
+  lines.push(`\u2022 Entry: ${isNaN(entry) ? '-' : entry}`);
+  lines.push(`\u2022 Stop-Loss: ${isNaN(sl) ? '-' : sl}${slPct !== null ? ' (' + slPct.toFixed(2) + '%)' : ''}`);
+  lines.push(`\u2022 Target: ${isNaN(tp) ? '-' : tp}${tpPct !== null ? ' (' + tpPct.toFixed(2) + '%)' : ''}`);
+  lines.push(`\u2022 R:R = 1 : ${rr !== null ? rr.toFixed(2) : '-'}`);
+  lines.push('');
+  lines.push('**Invalidation Plan**');
+  lines.push(`\u2022 Invalidated if: ${document.getElementById('invalidationCriteria').value || '(not set)'}`);
+  lines.push(`\u2022 Action if invalidated: ${document.getElementById('invalidationAction').value || '(not set)'}`);
+  lines.push('');
+  lines.push('**Scenario Planning**');
+  const sideHold = document.getElementById('sidewaysHoldValue').value;
+  const sideUnit = document.getElementById('sidewaysHoldUnit').value;
+  lines.push(`\u2022 Bullish: ${document.getElementById('bullScenario').value || '(not set)'}`);
+  lines.push(`\u2022 Bearish: ${document.getElementById('bearScenario').value || '(not set)'}`);
+  lines.push(`\u2022 Sideways: ${document.getElementById('sidewaysScenario').value || '(not set)'}${sideHold ? ' \u2014 time-stop ' + sideHold + ' ' + (sideUnit || '') : ''}`);
+  lines.push('');
+  lines.push('**Risk & Sizing**');
+  lines.push(`\u2022 Account Risk: ${isNaN(riskPct) ? '-' : riskPct + '%'}${riskAmt !== null ? ' ($' + riskAmt.toFixed(2) + ')' : ''}`);
+  lines.push(`\u2022 Position Size: ${units !== null ? units.toFixed(4) + ' units (~$' + notional.toFixed(2) + ' notional)' : '-'}`);
+  lines.push(`\u2022 Leverage: ${isNaN(leverage) ? '-' : leverage + 'x'} (${marginMode || '-'})`);
+  lines.push(`\u2022 Margin Required: ${margin !== null ? '$' + margin.toFixed(2) + ' (' + marginPctAcct.toFixed(1) + '% of account)' : '-'}`);
+  lines.push(`\u2022 Liquidation Buffer: ${liqSafe === null ? '-' : (liqSafe ? 'SAFE' : 'UNSAFE')}`);
+  lines.push('');
+  lines.push(`**Checklist Status:** ${statusText}`);
+  lines.push('');
+  lines.push('"I protect my family. I trade objectively."');
+
+  return lines.join('\n');
+}
+
+function refreshTradePlan() {
+  document.getElementById('tradePlanPreview').value = buildTradePlanText();
+}
+
+function copyTradePlan() {
+  refreshTradePlan();
+  const text = document.getElementById('tradePlanPreview').value;
+  navigator.clipboard.writeText(text).then(() => alert('Trade plan copied \u2014 paste it into Discord.'));
+}
+
+// ---------- CSV Log ----------
+let logFileHandle = null;
+
+function csvEscape(val) {
+  if (val === null || val === undefined) return '';
+  const s = String(val);
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function gatherAllFields() {
+  const g = id => document.getElementById(id);
+  const val = id => g(id).value;
+  const chk = id => g(id).checked;
+
+  const entry = parseFloat(val('entryPx'));
+  const sl = parseFloat(val('slPx'));
+  const tp = parseFloat(val('tpPx'));
+  const acct = parseFloat(val('acctSize'));
+  const riskPct = parseFloat(val('riskPct'));
+  const leverage = parseFloat(val('leverage'));
+  const tier = val('capTier');
+
+  let riskAmt = null, units = null, notional = null, margin = null, marginPctAcct = null, liqSafe = null, rr = null;
+  if (!isNaN(entry) && !isNaN(sl) && entry !== sl) {
+    const stopDist = Math.abs(entry - sl);
+    if (!isNaN(tp)) rr = Math.abs(tp - entry) / stopDist;
+    if (!isNaN(acct) && !isNaN(riskPct)) {
+      riskAmt = acct * (riskPct / 100);
+      units = riskAmt / stopDist;
+      notional = units * entry;
+      if (!isNaN(leverage) && leverage > 0) {
+        margin = notional / leverage;
+        marginPctAcct = (margin / acct) * 100;
+        const liqPct = 100 / leverage;
+        const stopDistPct = (stopDist / entry) * 100;
+        liqSafe = liqPct > stopDistPct;
+      }
+    }
+  }
+
+  const banner = document.getElementById('banner');
+  const statusText = banner.innerText.replace(/\s+/g, ' ').trim();
+
+  return [
+    ['Timestamp', new Date().toISOString()],
+    ['Emotion', val('emotion')], ['SleepHours', val('sleep')],
+    ['WorkDone', chk('workDone')], ['PrayerDone', chk('prayerDone')],
+    ['NewsCheck', chk('newsCheck')], ['VolCheck', chk('volCheck')],
+    ['KillSwitchWinsToday', localStorage.getItem('killSwitchWins') || '0'],
+    ['KillSwitchLossesToday', localStorage.getItem('killSwitchLosses') || '0'],
+    ['BTCBias', val('btcBias')], ['BTCRSIZone', val('btcRSIZone')],
+    ['BTCMoveDaily', val('btcMoveDaily')], ['BTCMoveOther', val('btcMoveOther')], ['BTCBoxPosition', val('btcBoxPosition')],
+    ['TokenName', val('tokenName')], ['MarketCapTier', tier || ''], ['TradingObjective', val('tradingObjective')],
+    ['TokenMA_Weekly_ZS', chk('tokenMA_Weekly_ZS')], ['TokenMA_Weekly', chk('tokenMA_Weekly')], ['TokenMA_Daily', chk('tokenMA_Daily')], ['TokenMA_Daily_Stack', chk('tokenMA_Daily_Stack')], ['TokenMA_4H', chk('tokenMA_4H')], ['TokenMA_1H', chk('tokenMA_1H')],
+    ['TokenRSIZone', val('tokenRSI14')], ['TokenMove', val('tokenMove')],
+    ['EntryType', val('entryType')],
+    ['E1_Validated', chk('e1Validated')], ['E1_SLPoint', chk('e1SLPoint')], ['E1_MAConfluence', chk('e1MAConfluence')],
+    ['E2_Confirmed', chk('e2Confirmed')], ['E2_MAConfluence', chk('e2MAConfluence')],
+    ['E3_Closed1H', chk('e3Closed1h')], ['E3_Closed4H', chk('e3Closed4h')],
+    ['E4_Retest', chk('e4Retest')],
+    ['Direction', val('direction')], ['EntryPrice', val('entryPx')], ['StopLoss', val('slPx')], ['Target', val('tpPx')],
+    ['SLBufferPct', val('slBufferPct')], ['RR_Ratio', rr !== null ? rr.toFixed(2) : ''],
+    ['InvalidationCriteria', val('invalidationCriteria')], ['InvalidationAction', val('invalidationAction')], ['InvalidationDefined', chk('invalidationDefined')],
+    ['BullScenario', val('bullScenario')],
+    ['BearScenario', val('bearScenario')],
+    ['SidewaysScenario', val('sidewaysScenario')], ['SidewaysHoldValue', val('sidewaysHoldValue')], ['SidewaysHoldUnit', val('sidewaysHoldUnit')],
+    ['AccountSize', val('acctSize')], ['RiskPct', val('riskPct')], ['RiskAmount', riskAmt !== null ? riskAmt.toFixed(2) : ''],
+    ['PositionUnits', units !== null ? units.toFixed(6) : ''], ['NotionalValue', notional !== null ? notional.toFixed(2) : ''],
+    ['Leverage', val('leverage')], ['MarginMode', val('marginMode')],
+    ['MarginRequired', margin !== null ? margin.toFixed(2) : ''], ['MarginPctOfAccount', marginPctAcct !== null ? marginPctAcct.toFixed(2) : ''],
+    ['LiquidationSafe', liqSafe === null ? '' : liqSafe],
+    ['LeverageOk', chk('leverageOk')], ['LiqBufferChecked', chk('liqBuffer')],
+    ['PosLimit', chk('posLimit')], ['CorrLimit', chk('corrLimit')], ['DailyLimit', chk('dailyLimit')],
+    ['SLSet', chk('slSet')], ['Journaled', chk('journaled')],
+    ['OverallStatus', statusText],
+    ['Review_ActualEntryPrice', val('rvEntry')], ['Review_ExitPrice', val('rvExit')], ['Review_TimeHeld', val('rvTime')], ['Review_ReasonForExit', val('rvReason')],
+    ['Review_FollowedPlan', chk('rvFollowedPlan')], ['Review_Lesson', val('rvLesson')],
+  ];
+}
+
+function buildCsvHeader() {
+  return gatherAllFields().map(([label]) => csvEscape(label)).join(',');
+}
+
+function buildCsvRow() {
+  return gatherAllFields().map(([, value]) => csvEscape(value)).join(',');
+}
+
+function supportsFileSystemAccess() {
+  return 'showSaveFilePicker' in window;
+}
+
+async function chooseLogFile() {
+  try {
+    logFileHandle = await window.showSaveFilePicker({
+      suggestedName: 'trading_log.csv',
+      types: [{ description: 'CSV file', accept: { 'text/csv': ['.csv'] } }],
+    });
+    document.getElementById('logFileStatus').textContent = 'Logging to: ' + logFileHandle.name;
+    await ensureHeaderRow();
+  } catch (err) {
+    if (err.name !== 'AbortError') alert('Could not select file: ' + err.message);
+  }
+}
+
+async function ensureHeaderRow() {
+  const file = await logFileHandle.getFile();
+  const existingText = await file.text();
+  if (!existingText || existingText.trim().length === 0) {
+    const writable = await logFileHandle.createWritable();
+    await writable.write(buildCsvHeader() + '\n');
+    await writable.close();
+  }
+}
+
+async function logEntryToCsv() {
+  if (!logFileHandle) { alert('Choose a log file first.'); return; }
+  try {
+    const file = await logFileHandle.getFile();
+    const existingText = await file.text();
+    const base = (existingText && existingText.length > 0) ? existingText.replace(/\n?$/, '\n') : (buildCsvHeader() + '\n');
+    const newContent = base + buildCsvRow() + '\n';
+    const writable = await logFileHandle.createWritable();
+    await writable.write(newContent);
+    await writable.close();
+    document.getElementById('logFileStatus').textContent = 'Logged to: ' + logFileHandle.name + ' at ' + new Date().toLocaleTimeString();
+  } catch (err) {
+    alert('Could not write to file: ' + err.message);
+  }
+}
+
+function downloadFullCsvLog() {
+  const log = JSON.parse(localStorage.getItem('csvFallbackLog') || '[]');
+  log.push(gatherAllFields().map(([, value]) => value));
+  localStorage.setItem('csvFallbackLog', JSON.stringify(log));
+
+  const header = buildCsvHeader();
+  const rows = log.map(row => row.map(v => csvEscape(v)).join(','));
+  const csvContent = [header, ...rows].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'trading_log.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function initCsvLogControls() {
+  if (supportsFileSystemAccess()) {
+    document.getElementById('csvFsaControls').style.display = 'block';
+    document.getElementById('csvFallbackControls').style.display = 'none';
+  } else {
+    document.getElementById('csvFsaControls').style.display = 'none';
+    document.getElementById('csvFallbackControls').style.display = 'block';
+  }
+}
+
+function copyReview() {
+  const lines = [
+    'Entry: ' + (document.getElementById('rvEntry').value || '-'),
+    'Exit: ' + (document.getElementById('rvExit').value || '-'),
+    'Time held: ' + (document.getElementById('rvTime').value || '-'),
+    'Reason for exit: ' + (document.getElementById('rvReason').value || '-'),
+    'Followed plan: ' + (document.getElementById('rvFollowedPlan').checked ? 'Yes' : 'No'),
+    'Lesson: ' + (document.getElementById('rvLesson').value || '-'),
+  ].join('\n');
+  navigator.clipboard.writeText(lines).then(() => alert('Copied. Paste it into your own journal if you want to keep it.'));
+}
+
+function clearReview() {
+  ['rvEntry','rvExit','rvTime','rvReason','rvLesson'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('rvFollowedPlan').checked = false;
+}
+
+function resetChecklist() {
+  if (!confirm('Reset the checklist for a new trade evaluation?\n\nThis will clear every field and checkbox you\'ve filled in (win/loss counts and your CSV log are not affected). This cannot be undone.')) return;
+  CHECK_IDS.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+  ['btcBias','btcRSIZone','btcMoveDaily','btcMoveOther','btcBoxPosition','tokenName','capTier','tradingObjective','tokenMove','entryType','direction','marginMode']
+    .forEach(id => document.getElementById(id).value = '');
+  ['entryPx','slPx','tpPx','leverage','tokenRSI14','invalidationCriteria','invalidationAction',
+   'bullScenario','bearScenario','sidewaysScenario','sidewaysHoldValue','sidewaysHoldUnit']
+   .forEach(id => document.getElementById(id).value = '');
+  document.getElementById('slBufferPct').value = '70';
+  evaluate();
+}
+
+document.querySelectorAll('.mtp input, .mtp select, .mtp textarea').forEach(el => {
+  el.addEventListener('input', evaluate);
+  el.addEventListener('change', evaluate);
+});
+
+const THEME_CYCLE = ['light', 'dark', 'darker'];
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const idx = THEME_CYCLE.indexOf(current);
+  const next = THEME_CYCLE[(idx === -1 ? 0 : idx + 1) % THEME_CYCLE.length];
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('checklistTheme', next); } catch (e) {}
+  syncThemeToggleLabel();
+}
+
+function syncThemeToggleLabel() {
+  const btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  const labels = { light: '☀️ Light', dark: '🌙 Dark', darker: '⚫ Darker' };
+  btn.innerHTML = labels[theme] || labels.light;
+}
+
+const FIB_SCENARIOS = [
+  { level: 'Below 23.6%', label: 'Position' },
+  { level: 'Breaking 38.2%', label: 'Emerging Trend / Swing' },
+  { level: 'Above 50%', label: 'Swing (target 61.8%)' },
+  { level: 'Above 61.8%', label: 'MYH / ATH plays' }
+];
+let fibScenarioIdx = 0;
+
+function cycleFibScenario(dir) {
+  const count = FIB_SCENARIOS.length;
+  fibScenarioIdx = (fibScenarioIdx + dir + count) % count;
+  for (let i = 0; i < count; i++) {
+    const el = document.getElementById('fibScenario' + i);
+    if (el) el.style.display = (i === fibScenarioIdx) ? 'block' : 'none';
+  }
+  const lbl = document.getElementById('fibScenarioLabel');
+  if (lbl) {
+    const s = FIB_SCENARIOS[fibScenarioIdx];
+    lbl.textContent = `Scenario ${fibScenarioIdx + 1} of ${count} — ${s.level} → ${s.label}`;
+  }
+}
+
+const TAB_NAMES = ['checklist', 'psychology', 'chartguide', 'setups', 'dailytarget'];
+
+// ============================================================================
+// DAILY TARGET
+// ============================================================================
+function getMonthStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + (d.getMonth() + 1);
+}
+
+function getMonthLabel() {
+  const d = new Date();
+  return d.toLocaleString('default', { month: 'long', year: 'numeric' });
+}
+
+function getTodayDateStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function daysInCurrentMonth() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+}
+
+function getDtLog() {
+  try { return JSON.parse(localStorage.getItem('dtLog') || '[]'); } catch (e) { return []; }
+}
+
+function saveDtSettings() {
+  const goalEl = document.getElementById('dtMonthlyGoal');
+  const daysEl = document.getElementById('dtTradingDays');
+  if (goalEl) localStorage.setItem('dtMonthlyGoal', goalEl.value);
+  if (daysEl) localStorage.setItem('dtTradingDays', daysEl.value);
+}
+
+function loadDailyTargetState() {
+  const storedMonth = localStorage.getItem('dtMonth');
+  const curMonth = getMonthStr();
+  if (storedMonth !== curMonth) {
+    // New month: keep the Monthly Goal / Trading Days settings, reset the log.
+    localStorage.setItem('dtMonth', curMonth);
+    localStorage.setItem('dtLog', '[]');
+  }
+  const goal = localStorage.getItem('dtMonthlyGoal');
+  const days = localStorage.getItem('dtTradingDays');
+  if (goal !== null && document.getElementById('dtMonthlyGoal')) document.getElementById('dtMonthlyGoal').value = goal;
+  if (days !== null && document.getElementById('dtTradingDays')) document.getElementById('dtTradingDays').value = days;
+  const dateEl = document.getElementById('dtTradeDate');
+  if (dateEl && !dateEl.value) dateEl.value = getTodayDateStr();
+  renderDailyTarget();
+}
+
+function logTrade() {
+  const dateEl = document.getElementById('dtTradeDate');
+  const cryptoEl = document.getElementById('dtTradeCrypto');
+  const entryEl = document.getElementById('dtTradeEntry');
+  const exitEl = document.getElementById('dtTradeExit');
+  const dirEl = document.getElementById('dtTradeDirection');
+  const sizeEl = document.getElementById('dtTradeSize');
+
+  const date = dateEl.value || getTodayDateStr();
+  const crypto = (cryptoEl.value || '').trim() || '—';
+  const entry = parseFloat(entryEl.value);
+  const exit = parseFloat(exitEl.value);
+  const direction = dirEl.value;
+  const size = parseFloat(sizeEl.value);
+
+  if (isNaN(entry) || entry <= 0) { alert('Enter a valid entry price.'); return; }
+  if (isNaN(exit) || exit <= 0) { alert('Enter a valid exit price.'); return; }
+  if (isNaN(size) || size <= 0) { alert('Enter a valid position size (USD notional).'); return; }
+
+  const pricePct = direction === 'short' ? ((entry - exit) / entry) * 100 : ((exit - entry) / entry) * 100;
+  const profitUsd = size * (pricePct / 100);
+
+  const log = getDtLog();
+  log.push({ date, crypto, entry, exit, direction, size, pct: pricePct, amount: profitUsd });
+  localStorage.setItem('dtLog', JSON.stringify(log));
+
+  // Clear the entry form for the next trade, but keep the date (common to log several trades same day)
+  cryptoEl.value = '';
+  entryEl.value = '';
+  exitEl.value = '';
+  sizeEl.value = '';
+
+  renderDailyTarget();
+}
+
+function clearDailyTargetLog() {
+  if (!confirm("Clear this month's logged trades? This cannot be undone.")) return;
+  localStorage.setItem('dtLog', '[]');
+  renderDailyTarget();
+}
+
+function exportDailyTargetCsv() {
+  const log = getDtLog();
+  if (log.length === 0) { alert('Nothing to export yet — log a trade first.'); return; }
+  const sorted = [...log].sort((a, b) => a.date.localeCompare(b.date));
+  const header = ['Date', 'Crypto', 'Direction', 'Entry', 'Exit', 'Size (USD)', 'Profit (USD)', 'Profit (%)'];
+  const rows = sorted.map(e => [
+    e.date, e.crypto, e.direction, e.entry, e.exit, e.size, e.amount.toFixed(2), e.pct.toFixed(2)
+  ]);
+  const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `daily-target-log-${getMonthStr()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function renderDailyTarget() {
+  saveDtSettings();
+  const goalEl = document.getElementById('dtMonthlyGoal');
+  const daysEl = document.getElementById('dtTradingDays');
+  if (!goalEl || !daysEl) return; // tab not in DOM yet on first load pass
+
+  const goal = parseFloat(goalEl.value);
+  const totalDaysInMonth = daysInCurrentMonth();
+  let tradingDays = parseFloat(daysEl.value);
+  if (isNaN(tradingDays) || tradingDays <= 0) tradingDays = totalDaysInMonth;
+
+  const monthLabelEl = document.getElementById('dtMonthLabel');
+  if (monthLabelEl) monthLabelEl.textContent = getMonthLabel();
+
+  const dtResult = document.getElementById('dtDailyTargetResult');
+  if (isNaN(goal) || goal <= 0) {
+    dtResult.className = 'calc-result neutral';
+    dtResult.textContent = "Enter your monthly goal to see today's target.";
+  } else {
+    const dailyTarget = goal / tradingDays;
+    dtResult.className = 'calc-result ok';
+    dtResult.textContent = `Daily target ≈ $${dailyTarget.toFixed(2)} per day (over ${tradingDays} trading day${tradingDays === 1 ? '' : 's'} this month)`;
+  }
+
+  const log = getDtLog();
+  const earned = log.reduce((sum, e) => sum + e.amount, 0);
+  const dayOfMonth = new Date().getDate();
+  const daysElapsed = Math.min(dayOfMonth, tradingDays);
+  const daysRemaining = Math.max(tradingDays - daysElapsed, 0);
+
+  const progressBox = document.getElementById('dtProgressResult');
+  if (isNaN(goal) || goal <= 0) {
+    progressBox.className = 'calc-result neutral';
+    progressBox.textContent = 'Set your monthly goal first.';
+  } else {
+    const expectedByNow = (goal / tradingDays) * daysElapsed;
+    const onTrack = earned >= expectedByNow;
+    const remaining = goal - earned;
+    let msg = `Earned this month: $${earned.toFixed(2)} of $${goal.toFixed(2)} (${((earned / goal) * 100).toFixed(1)}%).`;
+    if (remaining <= 0) {
+      progressBox.className = 'calc-result ok';
+      msg += ' Goal reached — great work.';
+    } else if (daysRemaining > 0) {
+      const requiredAvg = remaining / daysRemaining;
+      msg += ` ${daysRemaining} day(s) left — need $${requiredAvg.toFixed(2)}/day average to hit it.`;
+      msg += onTrack ? ' Currently on/ahead of pace.' : ' Currently behind pace.';
+      progressBox.className = 'calc-result ' + (onTrack ? 'ok' : 'bad');
+    } else {
+      progressBox.className = 'calc-result bad';
+      msg += " This month's trading days are used up.";
+    }
+    progressBox.textContent = msg;
+  }
+
+  const tbl = document.getElementById('dtLogTable');
+  if (tbl) {
+    if (log.length === 0) {
+      tbl.style.display = 'none';
+      tbl.innerHTML = '';
+    } else {
+      tbl.style.display = 'table';
+      const sorted = [...log].sort((a, b) => a.date.localeCompare(b.date));
+      let html = '<tr><th>Date</th><th>Crypto</th><th>Dir</th><th>Entry</th><th>Exit</th><th>Profit ($)</th><th>Profit (%)</th></tr>';
+      sorted.forEach(e => {
+        const cls = e.amount < 0 ? 'unsafe' : 'safe';
+        html += `<tr class="${cls}"><td>${e.date}</td><td>${e.crypto}</td><td>${e.direction === 'short' ? 'Short' : 'Long'}</td><td>${e.entry}</td><td>${e.exit}</td><td class="status">$${e.amount.toFixed(2)}</td><td class="status">${e.pct.toFixed(2)}%</td></tr>`;
+      });
+      tbl.innerHTML = html;
+    }
+  }
+}
+
+function switchTab(tab) {
+  if (!TAB_NAMES.includes(tab)) tab = 'checklist';
+  TAB_NAMES.forEach(name => {
+    const panel = document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1));
+    const btn = document.getElementById('tabBtn' + name.charAt(0).toUpperCase() + name.slice(1));
+    if (panel) panel.style.display = (name === tab) ? 'block' : 'none';
+    if (btn) btn.classList.toggle('active', name === tab);
+  });
+}
+
+function loadActiveTab() {
+  let tab = 'checklist';
+  try { tab = localStorage.getItem('activeTab') || 'checklist'; } catch (e) {}
+  switchTab(tab);
+}
+
+loadState();
+loadDailyCounts();
+loadDailyTargetState();
+initCsvLogControls();
+syncThemeToggleLabel();
+evaluate();
+
+</script>
 <script>
 /* =====================================================================
    CONFIG — where the CSVs live.
@@ -812,7 +3051,7 @@ function plAdd(base, status = "watch") {
   if (!base) return false;
   if (plHas(base)) return false;
   const now = new Date().toISOString();
-  PL.cards.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), base, status, note: "", entry: "", sl: "", tp: "", created: now, updated: now });
+  PL.cards.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), base, status, priority: "Medium", note: "", entry: "", sl: "", tp: "", created: now, updated: now });
   plSave(); return true;
 }
 function plCard(id) { return PL.cards.find(c => c.id === id); }
@@ -838,7 +3077,8 @@ function cardHtml(c) {
       % to ${hi.label} high <b>${fmtPct(hi.pct)}</b> · RSI touch <b>${fmtRsi(r.swing)}</b> · Vol <b>${fmtVol(r.vol24)}</b>`;
   }
   const opts = STAGES.map(st => `<option value="${st.key}" ${st.key === c.status ? "selected" : ""}>${st.label}</option>`).join("");
-  return `<div class="pc" draggable="true" data-id="${c.id}">
+  const pr = c.priority || "Medium";
+  return `<div class="pc pr-${pr.toLowerCase()}" draggable="true" data-id="${c.id}">
     <div class="pc-top"><a class="coin" href="${tvUrl(c.base)}" target="_blank" rel="noopener" title="Open on TradingView">${esc(c.base)}<span class="ext" aria-hidden="true">↗</span></a>
       <button class="del" type="button" data-act="del" title="Delete card" aria-label="Delete ${esc(c.base)} card">✕</button></div>
     <div class="pc-meta">${meta}</div>
@@ -849,17 +3089,20 @@ function cardHtml(c) {
     </div>
     <div class="pc-rr">${rrText(c)}</div>
     <textarea data-f="note" placeholder="Notes: setup, reason, invalidation, lessons…">${esc(c.note)}</textarea>
-    <div class="pc-foot"><span title="${esc(c.updated)}">Updated ${ago(c.updated)}</span><select data-f="status" aria-label="Move card">${opts}</select></div>
+    <div class="pc-foot"><select data-f="priority" aria-label="Priority">${["High", "Medium", "Low"].map(p => `<option ${p === pr ? "selected" : ""}>${p}</option>`).join("")}</select>
+      <select data-f="status" aria-label="Move card">${opts}</select></div>
+    <div class="pc-foot"><span title="${esc(c.updated)}">Updated ${ago(c.updated)}</span><button class="pc-go" type="button" data-act="checklist" title="Open this trade in the pre-trade checklist">Checklist →</button></div>
   </div>`;
 }
 function renderPlanner() {
-  $("cPlan").textContent = PL.cards.length || "";
+  $("cPlanNav").textContent = PL.cards.filter(c => c.status !== "closed").length || "";
   $("plTokens").innerHTML = S.rows.map(r => `<option value="${esc(r.base)}">`).join("");
-  if (S.tab !== "plan") return;
+  if (S.section !== "planner") return;
   $("board").innerHTML = STAGES.map(st => {
-    const cards = PL.cards.filter(c => c.status === st.key);
+    const PR = { High: 0, Medium: 1, Low: 2 };
+    const cards = PL.cards.filter(c => c.status === st.key).sort((a, b) => (PR[a.priority || "Medium"] - PR[b.priority || "Medium"]));
     return `<div class="col" data-status="${st.key}"><div class="col-h"><span class="dot" style="background:${st.color}"></span>${st.label}<span class="n">${cards.length}</span></div>
-      <div class="col-b">${cards.length ? cards.map(cardHtml).join("") : `<div class="col-empty">${st.key === "watch" ? "Add tokens with the + Plan button in the watchlist, or type one above." : "Drag cards here"}</div>`}</div></div>`;
+      <div class="col-b">${cards.length ? cards.map(cardHtml).join("") : `<div class="col-empty">${st.key === "watch" ? "Add tokens with + Plan in the Screener, or type one above." : "Drag cards here"}</div>`}</div></div>`;
   }).join("");
 }
 function plMove(id, status) { const c = plCard(id); if (!c || c.status === status) return; c.status = status; plTouch(c); renderPlanner(); render(); }
@@ -867,13 +3110,19 @@ function plMove(id, status) { const c = plCard(id); if (!c || c.status === statu
   const board = $("board");
   // edits: save on input without re-rendering (keeps focus while typing)
   board.addEventListener("input", e => {
-    const el = e.target, f = el.dataset.f, card = el.closest(".pc"); if (!f || !card || f === "status") return;
+    const el = e.target, f = el.dataset.f, card = el.closest(".pc"); if (!f || !card || f === "status" || f === "priority") return;
     const c = plCard(card.dataset.id); if (!c) return;
     c[f] = el.value; plTouch(c);
     if (f !== "note") card.querySelector(".pc-rr").innerHTML = rrText(c);
   });
-  board.addEventListener("change", e => { if (e.target.dataset.f === "status") plMove(e.target.closest(".pc").dataset.id, e.target.value); });
+  board.addEventListener("change", e => {
+    const f = e.target.dataset.f, card = e.target.closest(".pc"); if (!card) return;
+    if (f === "status") plMove(card.dataset.id, e.target.value);
+    if (f === "priority") { const c = plCard(card.dataset.id); c.priority = e.target.value; plTouch(c); renderPlanner(); }
+  });
   board.addEventListener("click", e => {
+    const go = e.target.closest("[data-act=checklist]");
+    if (go) { openInChecklist(plCard(go.closest(".pc").dataset.id)); return; }
     const b = e.target.closest("[data-act=del]"); if (!b) return;
     const card = b.closest(".pc"), c = plCard(card.dataset.id);
     if (c && (!c.note && !c.entry) || confirmDelete(card)) { PL.cards = PL.cards.filter(x => x.id !== card.dataset.id); plSave(); renderPlanner(); render(); }
@@ -891,21 +3140,6 @@ function plMove(id, status) { const c = plCard(id); if (!c || c.status === statu
   const add = () => { const v = $("plAdd").value; if (plAdd(v)) { $("plAdd").value = ""; renderPlanner(); render(); } else if (v) { $("plAdd").select(); } };
   $("plAddBtn").addEventListener("click", add);
   $("plAdd").addEventListener("keydown", e => { if (e.key === "Enter") add(); });
-  $("plExport").addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify({ v: 1, exported: new Date().toISOString(), cards: PL.cards }, null, 2)], { type: "application/json" });
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `screener-planner-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  });
-  $("plImportBtn").addEventListener("click", () => $("plImport").click());
-  $("plImport").addEventListener("change", async e => {
-    const f = e.target.files[0]; if (!f) return;
-    try {
-      const d = JSON.parse(await f.text()); if (!Array.isArray(d.cards)) throw new Error("no cards");
-      const ids = new Set(PL.cards.map(c => c.id));
-      d.cards.forEach(c => { if (c && c.id && c.base && !ids.has(c.id)) PL.cards.push({ note: "", entry: "", sl: "", tp: "", status: "watch", ...c }); });
-      plSave(); renderPlanner(); render();
-    } catch (err) { alertBanner("That file isn't a planner export."); }
-    e.target.value = "";
-  });
 })();
 function confirmDelete(card) {   // inline confirm instead of a browser dialog
   if (card.dataset.confirm) return true;
@@ -914,7 +3148,7 @@ function confirmDelete(card) {   // inline confirm instead of a browser dialog
   setTimeout(() => { if (card.isConnected) { delete card.dataset.confirm; b.textContent = "✕"; b.style.cssText = ""; } }, 3000);
   return false;
 }
-function alertBanner(msg) { $("banner").innerHTML = `<div class="card banner">${esc(msg)}</div>`; setTimeout(() => $("banner").innerHTML = "", 4000); }
+function alertBanner(msg) { $("alertBox").innerHTML = `<div class="card banner">${esc(msg)}</div>`; setTimeout(() => $("alertBox").innerHTML = "", 4000); }
 function planBtn(base) {
   return plHas(base) ? `<button class="addp in" type="button" data-plan="${esc(base)}" title="Already in planner — open planner">✓ Planned</button>`
                      : `<button class="addp" type="button" data-plan="${esc(base)}" title="Add ${esc(base)} to planner">+ Plan</button>`;
@@ -923,19 +3157,131 @@ function planBtn(base) {
 document.addEventListener("click", e => {
   const b = e.target.closest(".addp"); if (!b) return;
   const base = b.dataset.plan;
-  if (plHas(base)) { document.querySelector('.tab[data-tab="plan"]').click(); return; }
+  if (plHas(base)) { showSection("planner"); return; }
   plAdd(base); b.outerHTML = planBtn(base); renderPlanner();
+});
+
+
+/* ---------- site navigation ---------- */
+const MTP_PANELS = ["checklist", "psychology", "chartguide", "setups", "dailytarget"];
+const SECTIONS = ["screener", "planner", ...MTP_PANELS];
+function showSection(sec) {
+  if (!SECTIONS.includes(sec)) sec = "screener";
+  S.section = sec;
+  $("secScreener").hidden = sec !== "screener";
+  $("secPlanner").hidden = sec !== "planner";
+  $("secMtp").hidden = !MTP_PANELS.includes(sec);
+  if (MTP_PANELS.includes(sec) && typeof switchTab === "function") switchTab(sec);
+  document.querySelectorAll("#sitenav button").forEach(b => b.toggleAttribute("aria-current", b.dataset.sec === sec) || b.setAttribute("aria-current", b.dataset.sec === sec ? "page" : "false"));
+  document.querySelectorAll("#sitenav button").forEach(b => { if (b.dataset.sec === sec) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  storage("scr-section", sec);
+  if (location.hash.slice(1) !== sec) history.replaceState(null, "", "#" + sec);
+  if (sec === "planner") renderPlanner();
+  if (sec === "screener") render();
+  if (sec === "checklist") renderChecklistHints();
+  scrollTo({ top: 0 });
+}
+$("sitenav").addEventListener("click", e => { const b = e.target.closest("button[data-sec]"); if (b) showSection(b.dataset.sec); });
+addEventListener("hashchange", () => showSection(location.hash.slice(1)));
+
+/* ---------- screener → checklist bridge ---------- */
+const rsiZone = v => v == null ? "" : v < 30 ? "Zone 1" : v < 50 ? "Zone 2" : v < 70 ? "Zone 3" : "Zone 4";
+const MA_STACKS = ["AOTS", "iAOTS", "ZS", "iZS", "Sideways"];
+function setField(id, value) {
+  const el = document.getElementById(id); if (!el || el.disabled) return;
+  if (el.type === "checkbox") el.checked = !!value; else el.value = value;
+  el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true }));
+}
+function asOf() { return S.lastTime ? S.lastTime.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "last run"; }
+function renderChecklistHints() {
+  const hb = $("hintBtc"), ht = $("hintToken"); if (!hb || !ht) return;
+  if (!S.rows.length) { hb.innerHTML = ht.innerHTML = ""; return; }
+  const btc = S.rows.find(r => r.base === "BTC");
+  if (btc) {
+    const stack = btc.raw.MA_Alignment_D1 || "";
+    hb.innerHTML = `<b>Screener (${esc(asOf())}):</b> BTC daily MA stack <b>${esc(stack || "–")}</b> · RSI D1 <span class="mono">${fmtRsi(btc.rsi)}</span> (${rsiZone(btc.rsi) || "–"}) ·
+      above MA100 D1 <b>${btc.above.D1 ? "yes" : "no"}</b><br><button type="button" class="secondary" id="useBtc">Use these for BTC condition & RSI zone</button>
+      <span class="note">Daily move and DB position still need your own read of the chart.</span>`;
+    $("useBtc").onclick = () => { if (MA_STACKS.includes(stack)) setField("btcBias", stack); if (btc.rsi != null) setField("btcRSIZone", rsiZone(btc.rsi)); };
+  } else hb.innerHTML = "";
+  const name = (($("tokenName") || {}).value || "").trim().toUpperCase().replace(/-?USDT(-SWAP|\.P)?$/, "");
+  const r = name && S.rows.find(x => x.base === name);
+  if (!name) { ht.innerHTML = ""; return; }
+  if (!r) { ht.innerHTML = `<b>Screener:</b> ${esc(name)} isn't in the latest scan.`; return; }
+  const g = GROUPS.find(x => x.key === tierOf(r)), hi = nearestHigh(r), stack = r.raw.MA_Alignment_D1 || "";
+  const tfs = S.tfs.filter(t => r.above[t] != null).map(t => `${TF_LABEL[t]} ${r.above[t] ? "✓" : "✗"}`).join(" ");
+  ht.innerHTML = `<b>Screener (${esc(asOf())}):</b> ${screen(r) ? "<b>on the watchlist</b>" : "not on the watchlist"} · ${g.emoji} ${esc(g.label)} · % to ${hi.label} high <span class="mono">${fmtPct(hi.pct)}</span><br>
+    RSI D1 <span class="mono">${fmtRsi(r.rsi)}</span> · RSI last touch <span class="mono">${fmtRsi(r.swing)}</span> · daily MA stack <b>${esc(stack || "–")}</b>${tfs ? ` · MA100 ${tfs}` : ""}
+    · <a href="${tvUrl(r.base)}" target="_blank" rel="noopener">chart ↗</a><br>
+    <button type="button" class="secondary" id="useTok">Fill Stage 4 from screener</button><span class="note">Sets Daily above MA100, Daily MA20 &gt; MA50 &gt; MA100 and RSI zone. Weekly, 4H and 1H stacks stay manual.</span>`;
+  $("useTok").onclick = () => {
+    setField("tokenMA_Daily", !!r.above.D1);
+    setField("tokenMA_Daily_Stack", stack === "AOTS");
+    if (r.rsi != null) setField("tokenRSI14", rsiZone(r.rsi));
+  };
+}
+document.addEventListener("input", e => { if (e.target.id === "tokenName") renderChecklistHints(); });
+function openInChecklist(c) {
+  if (!c) return;
+  if (typeof isKillSwitchActive === "function" && isKillSwitchActive()) {
+    showSection("checklist"); alertBanner("Daily kill switch is locked — no new trades today."); return;
+  }
+  setField("tokenName", c.base);
+  const e = parseFloat(c.entry), sl = parseFloat(c.sl);
+  if (c.entry) setField("entryPx", c.entry);
+  if (c.sl) setField("slPx", c.sl);
+  if (c.tp) setField("tpPx", c.tp);
+  if (e > 0 && sl > 0) setField("direction", sl < e ? "long" : "short");
+  showSection("checklist");
+  const st = $("stage3"); if (st) setTimeout(() => st.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+}
+
+/* ---------- one-time migration of the old Trading Partner watchlist into the Planner ---------- */
+(function migrateOldWatchlist() {
+  let old; try { old = JSON.parse(localStorage.getItem("watchlistItems") || "null"); } catch (e) { old = null; }
+  if (!Array.isArray(old) || !old.length) return;
+  const map = { all: "watch", pullback: "setup", executed: "open", closed: "closed" };
+  const now = new Date().toISOString();
+  old.forEach(it => {
+    if (!it || !it.crypto) return;
+    PL.cards.push({ id: "wl" + String(it.id || Math.random()).replace(/\W/g, ""), base: String(it.crypto).toUpperCase(), status: map[it.bucket] || "watch",
+      priority: it.priority || "Medium", note: it.notes || "", entry: "", sl: "", tp: "", created: it.dateAdded ? new Date(it.dateAdded).toISOString() : now, updated: now });
+  });
+  plSave();
+  try { localStorage.setItem("watchlistItems.migrated", localStorage.getItem("watchlistItems")); localStorage.removeItem("watchlistItems"); } catch (e) {}
+})();
+
+/* ---------- site-wide backup / restore (everything lives in this browser) ---------- */
+const BACKUP_KEYS = ["scr-planner-v1", "scr-filters", "scr-theme", "tradingChecklistState", "killSwitchDate", "killSwitchWins", "killSwitchLosses",
+  "dtLog", "dtMonth", "dtMonthlyGoal", "dtTradingDays", "csvFallbackLog"];
+$("backupBtn").addEventListener("click", () => {
+  const data = {}; BACKUP_KEYS.forEach(k => { const v = storage(k); if (v != null) data[k] = v; });
+  const blob = new Blob([JSON.stringify({ app: "my-trading-partner", v: 1, exported: new Date().toISOString(), data }, null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `trading-partner-backup-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+$("restoreBtn").addEventListener("click", () => $("restoreFile").click());
+$("restoreFile").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const j = JSON.parse(await f.text());
+    if (j.app === "my-trading-partner" && j.data) Object.entries(j.data).forEach(([k, v]) => { if (BACKUP_KEYS.includes(k)) storage(k, v); });
+    else if (Array.isArray(j.cards)) storage("scr-planner-v1", JSON.stringify({ v: 1, cards: j.cards }));   // old planner export
+    else throw new Error("unknown file");
+    location.reload();
+  } catch (err) { alertBanner("That file isn't a Trading Partner backup."); }
+  e.target.value = "";
 });
 
 /* ---------- master render ---------- */
 function render() {
-  if (!S.rows.length) return;
+  renderPlanner();
+  if (!S.rows.length || (S.section && S.section !== "screener")) return;
   const pass = S.rows.filter(screen);
   const view = pass.filter(r => matchSel(r));   // watchlist after cross-filter selections
   renderChips(); renderKpis(view); renderBars(pass); renderScatter(pass);
   $("cWatch").textContent = view.length; $("cAll").textContent = S.rows.filter(r => matchSel(r)).length;
   if (S.tab === "watch") renderWatch(view); else if (S.tab === "all") renderAll();
-  renderPlanner();
 }
 addEventListener("keydown", e => {
   if (e.key === "Escape" && !/INPUT|SELECT/.test(document.activeElement.tagName)) clearSel();
@@ -945,7 +3291,7 @@ addEventListener("keydown", e => {
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
   S.tab = t.dataset.tab;
   document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", String(x === t)));
-  $("panelWatch").hidden = S.tab !== "watch"; $("panelAll").hidden = S.tab !== "all"; $("panelPlan").hidden = S.tab !== "plan";
+  $("panelWatch").hidden = S.tab !== "watch"; $("panelAll").hidden = S.tab !== "all";
   render();
 }));
 $("search").addEventListener("input", e => { S.search = e.target.value.trim().toLowerCase(); render(); });
@@ -953,7 +3299,7 @@ let rT; addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(ren
 
 /* ---------- boot ---------- */
 async function load() {
-  $("refreshed").textContent = "Loading data…"; $("dot").className = "status-dot"; $("banner").innerHTML = "";
+  $("refreshed").textContent = "Loading data…"; $("dot").className = "status-dot"; $("alertBox").innerHTML = "";
   try {
     const raw = await fetchCsv(LATEST_FILE);
     if (!raw.length) throw new Error("The CSV has no rows yet.");
@@ -975,15 +3321,14 @@ async function load() {
       Changing the filters above only changes this page, not the screener itself.<br>
       <b>Interactions.</b> Click a tier bar, a quadrant or a network in the legend to filter every other visual (click again, use the chips, or press Esc to clear).
       Click a bubble or a token name to open it on TradingView.<br>
-      <b>Planner.</b> Use <i>+ Plan</i> on any token to add a card, then move it from Watching to Closed as the trade develops. Notes, entry, stop and target are saved in this browser only —
-      use <i>Export</i> to back them up or move them to another device, and <i>Import</i> to load them back.<br>
+      <b>Planner.</b> Use <i>+ Plan</i> on any token to add a card in the Planner, then move it from Watching to Closed as the trade develops. <i>Checklist →</i> on a card carries it into the pre-trade checklist.<br>
       <b>BOS</b> = break of structure (the 52W/6M/3M high was broken). <b>Approaching</b> = not broken yet, but within the band of that level.
       Network grouping is a best-effort lookup. <b>⚠️ Trade at your own risk</b> — this is a screen, not a signal.`;
-    render();
+    render(); renderPlanner(); renderChecklistHints();
   } catch (e) {
     $("dot").className = "status-dot err";
     $("refreshed").textContent = "Couldn't load data";
-    $("banner").innerHTML = `<div class="card banner"><b>Couldn't load the screener data.</b><br>
+    $("alertBox").innerHTML = `<div class="card banner"><b>Couldn't load the screener data.</b><br>
       <span style="color:var(--text-secondary)">${esc(e.message)}. The screener writes <code>data/${LATEST_FILE}</code> after each run —
       check that at least one run has finished and committed it.</span></div>`;
     $("panelWatch").innerHTML = "";
@@ -992,6 +3337,7 @@ async function load() {
 $("reload").addEventListener("click", load);
 bindFilters();
 plLoad();
+showSection(location.hash.slice(1) || storage("scr-section") || "screener");
 load();
 </script>
 </body>
