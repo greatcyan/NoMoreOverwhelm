@@ -75,6 +75,7 @@
 
 /* ---------- base ---------- */
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; }
 body {
   background: var(--bg);
@@ -189,6 +190,56 @@ td.num, th.num { text-align: right; }
 .fail { color: var(--text-muted); }
 .flag { color: var(--text-muted); font-size: 11px; margin-left: 4px; }
 
+/* cross-filter */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: -2px 0 12px; min-height: 0; }
+.chips:empty { display: none; }
+.chips .lead { font-size: 12px; color: var(--text-muted); }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--accent) 14%, var(--surface-1)); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--text-primary); border-radius: 999px; padding: 4px 6px 4px 10px; font-size: 12px; cursor: pointer; }
+.chip b { font-weight: 600; }
+.chip .x { width: 18px; height: 18px; border-radius: 50%; display: inline-grid; place-items: center; color: var(--text-secondary); }
+.chip:hover .x { background: var(--surface-2); color: var(--text-primary); }
+.chip.clear { background: none; border-color: var(--border); color: var(--text-secondary); padding: 4px 10px; }
+.legend button { background: none; border: 1px solid transparent; border-radius: 999px; padding: 2px 8px; cursor: pointer; color: var(--text-secondary); font-size: 12px; }
+.legend button:hover { border-color: var(--border); color: var(--text-primary); }
+.legend button.on { border-color: var(--accent); color: var(--text-primary); }
+.legend button.dim { opacity: .45; }
+#barChart .hit, #scatter .quad { cursor: pointer; }
+tr.sel td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.ext { color: var(--text-muted); margin-left: 4px; font-size: 11px; }
+/* planner */
+.addp { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 1px 7px; font-size: 12px; cursor: pointer; color: var(--text-secondary); margin-left: 8px; vertical-align: 1px; }
+.addp:hover { border-color: var(--accent); color: var(--text-primary); }
+.addp.in { border-color: color-mix(in srgb, var(--good) 45%, transparent); color: var(--good-text); }
+.pl-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.pl-bar input[type=text] { padding: 6px 9px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); width: 190px; text-transform: uppercase; }
+.pl-bar input[type=text]::placeholder { text-transform: none; }
+.pl-bar .hint { color: var(--text-muted); font-size: 12px; margin-left: auto; }
+.board { display: grid; grid-template-columns: repeat(5, minmax(220px, 1fr)); gap: 10px; padding: 12px; overflow-x: auto; align-items: start; }
+.col { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; min-height: 140px; display: flex; flex-direction: column; }
+.col.drop { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.col-h { display: flex; align-items: center; gap: 8px; padding: 10px 12px 6px; font-weight: 600; font-size: 13px; }
+.col-h .dot { width: 8px; height: 8px; border-radius: 50%; }
+.col-h .n { color: var(--text-muted); font-weight: 500; }
+.col-b { padding: 4px 8px 10px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.col-empty { color: var(--text-muted); font-size: 12px; text-align: center; padding: 18px 6px; border: 1px dashed var(--border); border-radius: 8px; }
+.pc { background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 7px; cursor: grab; }
+.pc.dragging { opacity: .5; }
+.pc-top { display: flex; align-items: center; gap: 6px; }
+.pc-top .coin { font-size: 14px; }
+.pc-top .del { margin-left: auto; background: none; border: 0; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 0 2px; }
+.pc-top .del:hover { color: var(--critical-text); }
+.pc-meta { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+.pc-meta b { color: var(--text-secondary); font-weight: 600; font-family: "JetBrains Mono", monospace; }
+.pc-lv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.pc-lv label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; display: flex; flex-direction: column; gap: 2px; }
+.pc-lv input { width: 100%; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface-2); font-family: "JetBrains Mono", monospace; font-size: 12px; }
+.pc-rr { font-size: 11px; color: var(--text-secondary); }
+.pc-rr b { font-family: "JetBrains Mono", monospace; color: var(--text-primary); }
+.pc textarea { width: 100%; min-height: 58px; resize: vertical; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); font: 12px/1.45 Inter, system-ui, sans-serif; color: var(--text-primary); }
+.pc-foot { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
+.pc-foot select { margin-left: auto; padding: 3px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface-2); font-size: 11px; }
+@media (max-width: 560px) { .board { grid-template-columns: repeat(5, 82vw); } .pl-bar .hint { margin-left: 0; } }
 footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-height: 1.6; }
 .banner { padding: 12px 16px; margin-bottom: 12px; border-left: 3px solid var(--critical); }
 .loading { padding: 40px; text-align: center; color: var(--text-muted); }
@@ -231,9 +282,11 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
     <button class="btn reset" id="fReset" type="button">Reset to screener defaults</button>
   </section>
 
+  <div class="chips" id="chips" aria-live="polite"></div>
+
   <section class="charts">
     <div class="card">
-      <div class="card-head"><h2>Momentum quadrant</h2><span class="hint">bubble size = 24h volume · hover for details · click to open chart</span></div>
+      <div class="card-head"><h2>Momentum quadrant</h2><span class="hint">click a quadrant or network to filter · click a bubble for TradingView</span></div>
       <div class="chart-body" id="scatter"></div>
       <div class="legend" id="scatterLegend"></div>
     </div>
@@ -247,10 +300,23 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" data-tab="watch">Watchlist<span class="count" id="cWatch"></span></button>
       <button class="tab" role="tab" aria-selected="false" data-tab="all">All instruments<span class="count" id="cAll"></span></button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="plan">Planner<span class="count" id="cPlan"></span></button>
       <div class="tab-tools"><input type="search" id="search" placeholder="Search coin…" aria-label="Search coin"></div>
     </div>
     <div id="panelWatch" class="groups"><div class="loading">Loading…</div></div>
     <div id="panelAll" class="tbl-wrap" hidden></div>
+    <div id="panelPlan" hidden>
+      <div class="pl-bar">
+        <input type="text" id="plAdd" list="plTokens" placeholder="Add token, e.g. SOL" aria-label="Token to add to planner">
+        <datalist id="plTokens"></datalist>
+        <button class="btn" id="plAddBtn" type="button">+ Add card</button>
+        <button class="btn" id="plExport" type="button">Export</button>
+        <button class="btn" id="plImportBtn" type="button">Import</button>
+        <input type="file" id="plImport" accept="application/json" hidden>
+        <span class="hint">Drag cards between columns · notes save automatically in this browser</span>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
   </section>
 
   <footer class="note" id="notes"></footer>
@@ -309,7 +375,8 @@ const GROUPS = [
 ];
 
 /* ---------- state ---------- */
-const S = { rows: [], cols: {}, tfs: [], tab: "watch", sort: { key: "vol24", dir: -1 }, search: "", f: {} };
+const S = { rows: [], cols: {}, tfs: [], tab: "watch", sort: { key: "vol24", dir: -1 }, search: "", f: {},
+  sel: { tier: null, net: null, quad: null } };   // cross-filter selections
 
 /* ---------- helpers ---------- */
 const $ = id => document.getElementById(id);
@@ -331,7 +398,7 @@ function fmtPrice(v) {
   if (v >= 1) return v.toFixed(3);
   return v.toPrecision(4);
 }
-const tvUrl = base => `https://www.tradingview.com/chart/?symbol=OKX:${encodeURIComponent(base)}USDT.P`;
+const tvUrl = base => `https://www.tradingview.com/chart/?symbol=OKX:${encodeURIComponent(base)}USDT.P&interval=D`;   // opens on the daily chart
 function storage(k, v) {
   try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; }
 }
@@ -456,6 +523,38 @@ function bindFilters() {
   });
 }
 
+/* ---------- cross-filter ---------- */
+const QUAD_RSI = 80;   // horizontal split of the quadrant chart
+const QUADS = {
+  TR: "Breakout + hot", TL: "Hot, below high", BR: "Breakout, cooling", BL: "Setting up",
+};
+function quadOf(r) {
+  if (r.pct52 == null || r.swing == null) return null;
+  return (r.swing >= QUAD_RSI ? "T" : "B") + (r.pct52 >= 0 ? "R" : "L");
+}
+// does a row match the active selections? `except` skips one dimension (for that chart's own view)
+function matchSel(r, except) {
+  const s = S.sel;
+  if (s.tier && except !== "tier" && tierOf(r) !== s.tier) return false;
+  if (s.net && except !== "net" && r.net !== s.net) return false;
+  if (s.quad && except !== "quad" && quadOf(r) !== s.quad) return false;
+  return true;
+}
+function toggleSel(dim, val) { S.sel[dim] = S.sel[dim] === val ? null : val; render(); }
+function clearSel() { S.sel = { tier: null, net: null, quad: null }; render(); }
+function renderChips() {
+  const s = S.sel, chips = [];
+  if (s.tier) { const g = GROUPS.find(x => x.key === s.tier); chips.push(["tier", `${g.emoji} <b>${esc(g.label)}</b>`]); }
+  if (s.net) chips.push(["net", `Network: <b>${esc(s.net)}</b>`]);
+  if (s.quad) chips.push(["quad", `Quadrant: <b>${esc(QUADS[s.quad])}</b>`]);
+  $("chips").innerHTML = chips.length ? `<span class="lead">Filtered by</span>` +
+    chips.map(([d, h]) => `<button class="chip" type="button" data-dim="${d}" title="Remove filter">${h}<span class="x" aria-hidden="true">✕</span></button>`).join("") +
+    (chips.length > 1 ? `<button class="chip clear" type="button" data-dim="all">Clear all</button>` : "") : "";
+  $("chips").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    if (c.dataset.dim === "all") clearSel(); else { S.sel[c.dataset.dim] = null; render(); }
+  }));
+}
+
 /* ---------- render: KPIs ---------- */
 function renderKpis(pass) {
   const by = k => pass.filter(r => tierOf(r) === k).length;
@@ -474,38 +573,45 @@ function renderKpis(pass) {
   ).join("");
 }
 
-/* ---------- render: bar chart (single series, tiers) ---------- */
+/* ---------- render: bar chart (tiers) — click a bar to filter everything else ---------- */
 function renderBars(pass) {
-  const data = GROUPS.map(g => ({ g, n: pass.filter(r => tierOf(r) === g.key).length }));
+  const base = pass.filter(r => matchSel(r, "tier"));   // respects other selections, not its own
+  const data = GROUPS.map(g => ({ g, n: base.filter(r => tierOf(r) === g.key).length }));
   const max = Math.max(1, ...data.map(d => d.n));
-  const W = Math.max(260, $("barChart").clientWidth - 32), rowH = 44, labelW = 0, valW = 30;
-  const H = data.length * rowH + 4, plotW = Math.max(40, W - labelW - valW);
-  let svg = `<svg width="100%" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tokens per watchlist tier">`;
+  const W = Math.max(260, $("barChart").clientWidth - 32), rowH = 44, valW = 30;
+  const H = data.length * rowH + 4, plotW = Math.max(40, W - valW);
+  let svg = `<svg width="100%" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tokens per watchlist tier. Click a bar to filter.">`;
   data.forEach((d, i) => {
     const y = i * rowH + 4, w = d.n ? Math.max(4, (d.n / max) * plotW) : 0;
-    svg += `<text class="lbl" x="0" y="${y + 12}">${d.g.emoji} ${esc(d.g.label)}</text>`;
+    const on = S.sel.tier === d.g.key, dim = S.sel.tier && !on;
+    svg += `<g opacity="${dim ? 0.35 : 1}">`;
+    svg += `<text class="lbl" x="0" y="${y + 12}" style="${on ? "font-weight:700;fill:var(--text-primary)" : ""}">${d.g.emoji} ${esc(d.g.label)}</text>`;
     svg += `<rect x="0" y="${y + 18}" width="${plotW}" height="14" rx="4" fill="var(--surface-2)"/>`;
-    if (w) svg += `<rect class="hit" data-i="${i}" x="0" y="${y + 18}" width="${w}" height="14" rx="4" fill="var(--bar)"/>`;
-    svg += `<text class="val" x="${W - 2}" y="${y + 30}" text-anchor="end">${d.n}</text>`;
-    svg += `<rect class="hit" data-i="${i}" x="0" y="${y - 3}" width="${W}" height="${rowH}" fill="transparent"/>`;
+    if (w) svg += `<rect x="0" y="${y + 18}" width="${w}" height="14" rx="4" fill="var(--bar)"/>`;
+    svg += `<text class="val" x="${W - 2}" y="${y + 30}" text-anchor="end">${d.n}</text></g>`;
+    svg += `<rect class="hit" data-i="${i}" x="0" y="${y - 3}" width="${W}" height="${rowH}" fill="transparent" role="button" tabindex="0" aria-pressed="${on}" aria-label="${esc(d.g.label)}: ${d.n} tokens"/>`;
   });
   svg += "</svg>";
   $("barChart").innerHTML = svg;
   $("barChart").querySelectorAll(".hit").forEach(el => {
+    const d = data[+el.dataset.i];
     el.addEventListener("mousemove", e => {
-      const d = data[+el.dataset.i];
-      const names = pass.filter(r => tierOf(r) === d.g.key).slice(0, 8).map(r => r.base).join(", ");
+      const names = base.filter(r => tierOf(r) === d.g.key).slice(0, 8).map(r => r.base).join(", ");
       showTip(e, `<b>${d.g.emoji} ${esc(d.g.label)}</b><div class="row"><span>Tokens</span><span>${d.n}</span></div>` +
-        (names ? `<div style="margin-top:4px;color:var(--text-muted);max-width:240px;white-space:normal">${esc(names)}${d.n > 8 ? "…" : ""}</div>` : ""));
+        (names ? `<div style="margin-top:4px;color:var(--text-muted);max-width:240px;white-space:normal">${esc(names)}${d.n > 8 ? "…" : ""}</div>` : "") +
+        `<div style="margin-top:4px;color:var(--text-muted)">${S.sel.tier === d.g.key ? "Click to clear filter" : "Click to filter"}</div>`);
     });
     el.addEventListener("mouseleave", hideTip);
+    const act = () => { hideTip(); toggleSel("tier", d.g.key); };
+    el.addEventListener("click", act);
+    el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(); } });
   });
 }
 
 /* ---------- render: quadrant bubble chart ----------
    x = % from 52-week high (right of 0 = broke it), y = swing-high RSI,
-   bubble area = 24h volume, colour = network bucket (3 series max). */
-const QUAD_RSI = 80;   // horizontal split: "hot" momentum above this swing-high RSI
+   bubble area = 24h volume, colour = network bucket (3 series max).
+   Click a quadrant or legend item to filter; click a bubble to open its chart. */
 function renderScatter(pass) {
   const pts = pass.filter(r => r.pct52 != null && r.swing != null);
   const box = $("scatter"), W = Math.max(300, box.clientWidth - 32), H = W < 520 ? 320 : 380;
@@ -519,33 +625,50 @@ function renderScatter(pass) {
   const maxVol = Math.max(1, ...pts.map(p => p.vol24 ?? 0));
   const rad = p => 4 + 16 * Math.sqrt((p.vol24 ?? 0) / maxVol);   // area ∝ volume
   const qx = sx(Math.min(Math.max(0, x0), x1)), qy = sy(Math.min(Math.max(QUAD_RSI, y0), y1));
+  const compact = W < 560;
   let svg = `<svg width="100%" viewBox="0 0 ${W} ${H}" role="img" aria-label="Quadrant chart of swing-high RSI versus percent from 52-week high, bubble size is 24h volume">`;
-  // quadrant tint (top-right = strongest) + labels
-  svg += `<rect x="${qx}" y="${m.t}" width="${m.l + pw - qx}" height="${qy - m.t}" fill="var(--good)" opacity=".06"/>`;
-  const compact = W < 560;   // phones: titles only, no sub-lines
-  const ql = (x, y, a, t1, t2) => `<text x="${x}" y="${y}" text-anchor="${a}" style="font-weight:600;fill:var(--text-secondary)">${t1}</text>` + (compact ? "" : `<text x="${x}" y="${y + 13}" text-anchor="${a}">${t2}</text>`);
-  svg += ql(m.l + pw - 6, m.t + 14, "end", "Breakout + hot", "broke 52WH, RSI ≥ " + QUAD_RSI);
-  svg += ql(m.l + 6, m.t + 14, "start", "Hot, below high", "strong momentum, not broken yet");
-  svg += ql(m.l + pw - 6, m.t + ph - (compact ? 6 : 20), "end", "Breakout, cooling", "broke 52WH, RSI < " + QUAD_RSI);
-  svg += ql(m.l + 6, m.t + ph - (compact ? 6 : 20), "start", "Setting up", "below high, moderate momentum");
+  // clickable quadrant regions (behind everything)
+  const qrect = { TL: [m.l, m.t, qx - m.l, qy - m.t], TR: [qx, m.t, m.l + pw - qx, qy - m.t],
+                  BL: [m.l, qy, qx - m.l, m.t + ph - qy], BR: [qx, qy, m.l + pw - qx, m.t + ph - qy] };
+  for (const [k, [x, y, w, h]] of Object.entries(qrect)) {
+    if (w <= 0 || h <= 0) continue;
+    const on = S.sel.quad === k;
+    const fill = on ? "var(--accent)" : k === "TR" ? "var(--good)" : "transparent";
+    svg += `<rect class="quad" data-q="${k}" x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" opacity="${on ? 0.1 : k === "TR" ? 0.06 : 1}" role="button" aria-pressed="${on}" aria-label="Filter quadrant ${QUADS[k]}"/>`;
+  }
+  const ql = (k, x, y, a, t2) => {
+    const on = S.sel.quad === k;
+    return `<text x="${x}" y="${y}" text-anchor="${a}" style="font-weight:${on ? 700 : 600};fill:var(${on ? "--text-primary" : "--text-secondary"});pointer-events:none">${QUADS[k]}</text>` +
+      (compact ? "" : `<text x="${x}" y="${y + 13}" text-anchor="${a}" style="pointer-events:none">${t2}</text>`);
+  };
+  const bottom = m.t + ph - (compact ? 6 : 20);
   const xStep = (x1 - x0) > 60 ? 20 : (x1 - x0) > 30 ? 10 : 5;
   for (let v = Math.ceil(x0 / xStep) * xStep; v <= x1; v += xStep) {
-    svg += `<line x1="${sx(v)}" x2="${sx(v)}" y1="${m.t}" y2="${m.t + ph}" stroke="var(--grid)"/>`;
+    svg += `<line x1="${sx(v)}" x2="${sx(v)}" y1="${m.t}" y2="${m.t + ph}" stroke="var(--grid)" style="pointer-events:none"/>`;
     svg += `<text x="${sx(v)}" y="${H - 22}" text-anchor="middle">${v > 0 ? "+" : ""}${v}%</text>`;
   }
   for (let v = Math.ceil(y0 / 5) * 5; v <= y1; v += 5) {
-    svg += `<line x1="${m.l}" x2="${m.l + pw}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--grid)"/>`;
+    svg += `<line x1="${m.l}" x2="${m.l + pw}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--grid)" style="pointer-events:none"/>`;
     svg += `<text x="${m.l - 6}" y="${sy(v) + 4}" text-anchor="end">${v}</text>`;
   }
-  svg += `<line x1="${qx}" x2="${qx}" y1="${m.t}" y2="${m.t + ph}" stroke="var(--text-muted)" stroke-dasharray="4 3"/>`;
-  svg += `<line x1="${m.l}" x2="${m.l + pw}" y1="${qy}" y2="${qy}" stroke="var(--text-muted)" stroke-dasharray="4 3"/>`;
+  svg += ql("TR", m.l + pw - 6, m.t + 14, "end", "broke 52WH, RSI ≥ " + QUAD_RSI);
+  svg += ql("TL", m.l + 6, m.t + 14, "start", "strong momentum, not broken yet");
+  svg += ql("BR", m.l + pw - 6, bottom, "end", "broke 52WH, RSI < " + QUAD_RSI);
+  svg += ql("BL", m.l + 6, bottom, "start", "below high, moderate momentum");
+  svg += `<line x1="${qx}" x2="${qx}" y1="${m.t}" y2="${m.t + ph}" stroke="var(--text-muted)" stroke-dasharray="4 3" style="pointer-events:none"/>`;
+  svg += `<line x1="${m.l}" x2="${m.l + pw}" y1="${qy}" y2="${qy}" stroke="var(--text-muted)" stroke-dasharray="4 3" style="pointer-events:none"/>`;
   svg += `<text x="${m.l + pw / 2}" y="${H - 4}" text-anchor="middle">% from 52-week high  →  broke it</text>`;
   svg += `<text transform="translate(11 ${m.t + ph / 2}) rotate(-90)" text-anchor="middle">RSI last touch (swing high)</text>`;
-  [...pts].sort((a, b) => (b.vol24 ?? 0) - (a.vol24 ?? 0)).forEach(p => {   // big first, small on top
-    svg += `<circle class="dot" data-inst="${esc(p.inst)}" cx="${sx(p.pct52)}" cy="${sy(p.swing)}" r="${rad(p)}" fill="${NET_COLOR[p.net]}" fill-opacity=".78" stroke="var(--surface-1)" stroke-width="2" style="cursor:pointer"/>`;
+  const active = p => matchSel(p);   // all selections apply; non-matching bubbles fade
+  const order = [...pts].sort((a, b) => (active(a) - active(b)) || ((b.vol24 ?? 0) - (a.vol24 ?? 0)));   // faded first, then big→small
+  order.forEach(p => {
+    const on = active(p);
+    svg += `<circle class="dot" data-inst="${esc(p.inst)}" cx="${sx(p.pct52)}" cy="${sy(p.swing)}" r="${rad(p)}" fill="${NET_COLOR[p.net]}"
+      fill-opacity="${on ? 0.8 : 0.12}" stroke="var(--surface-1)" stroke-width="2" style="cursor:pointer"/>`;
   });
-  // direct labels: the 6 highest-volume tokens
-  [...pts].sort((a, b) => (b.vol24 ?? 0) - (a.vol24 ?? 0)).slice(0, 6).forEach(p => {
+  // direct labels: selected token + the 6 highest-volume active tokens
+  const labelled = [...pts].filter(active).sort((a, b) => (b.vol24 ?? 0) - (a.vol24 ?? 0)).slice(0, 6);
+  labelled.forEach(p => {
     const x = sx(p.pct52), r = rad(p), right = x > m.l + pw - 60;
     svg += `<text class="lbl" x="${right ? x - r - 4 : x + r + 4}" y="${sy(p.swing) + 4}" text-anchor="${right ? "end" : "start"}" style="pointer-events:none;font-weight:600">${esc(p.base)}</text>`;
   });
@@ -553,14 +676,25 @@ function renderScatter(pass) {
   box.innerHTML = svg;
   const byInst = Object.fromEntries(pts.map(p => [p.inst, p]));
   box.querySelectorAll(".dot").forEach(el => {
-    const p = byInst[el.dataset.inst], r0 = +el.getAttribute("r");
-    el.addEventListener("mousemove", e => { el.setAttribute("r", r0 + 2); el.setAttribute("fill-opacity", "1"); showTip(e, tipHtml(p)); });
-    el.addEventListener("mouseleave", () => { el.setAttribute("r", r0); el.setAttribute("fill-opacity", ".78"); hideTip(); });
-    el.addEventListener("click", () => window.open(tvUrl(p.base), "_blank", "noopener"));
+    const p = byInst[el.dataset.inst], r0 = +el.getAttribute("r"), op = el.getAttribute("fill-opacity");
+    el.addEventListener("mousemove", e => { el.setAttribute("r", r0 + 2); el.setAttribute("fill-opacity", "1"); showTip(e, tipHtml(p) + `<div style="margin-top:4px;color:var(--text-muted)">Click to open on TradingView</div>`); });
+    el.addEventListener("mouseleave", () => { el.setAttribute("r", r0); el.setAttribute("fill-opacity", op); hideTip(); });
+    el.addEventListener("click", e => { e.stopPropagation(); hideTip(); window.open(tvUrl(p.base), "_blank", "noopener"); });
   });
-  const counts = Object.fromEntries(NET_ORDER.map(n => [n, pts.filter(p => p.net === n).length]));
-  $("scatterLegend").innerHTML = NET_ORDER.map(n => `<span><i style="background:${NET_COLOR[n]}"></i>${n} (${counts[n]})</span>`).join("")
-    + `<span style="margin-left:auto;color:var(--text-muted)">Bubble size = 24h volume</span>`;
+  box.querySelectorAll(".quad").forEach(el => {
+    el.addEventListener("mousemove", e => {
+      const k = el.dataset.q, n = pts.filter(p => quadOf(p) === k && matchSel(p, "quad")).length;
+      showTip(e, `<b>${QUADS[k]}</b><div class="row"><span>Tokens</span><span>${n}</span></div><div style="margin-top:4px;color:var(--text-muted)">${S.sel.quad === k ? "Click to clear filter" : "Click to filter"}</div>`);
+    });
+    el.addEventListener("mouseleave", hideTip);
+    el.addEventListener("click", () => { hideTip(); toggleSel("quad", el.dataset.q); });
+  });
+  const counts = Object.fromEntries(NET_ORDER.map(n => [n, pts.filter(p => p.net === n && matchSel(p, "net")).length]));
+  $("scatterLegend").innerHTML = NET_ORDER.map(n => {
+    const on = S.sel.net === n, dim = S.sel.net && !on;
+    return `<button type="button" data-net="${n}" class="${on ? "on" : dim ? "dim" : ""}" aria-pressed="${on}" title="${on ? "Clear filter" : "Filter by " + n}"><i style="background:${NET_COLOR[n]}"></i>${n} (${counts[n]})</button>`;
+  }).join("") + `<span style="margin-left:auto;color:var(--text-muted);align-self:center">Bubble size = 24h volume</span>`;
+  $("scatterLegend").querySelectorAll("button").forEach(b => b.addEventListener("click", () => toggleSel("net", b.dataset.net)));
 }
 function tipHtml(p) {
   const tf = S.tfs.map(t => `${t} ${p.above[t] ? "✓" : "✗"}`).join("  ");
@@ -590,7 +724,7 @@ function tfBadges(r) {
 }
 function renderWatch(pass) {
   const q = S.search;
-  const list = q ? pass.filter(r => r.base.toLowerCase().includes(q)) : pass;
+  const list = pass.filter(r => !q || r.base.toLowerCase().includes(q));
   let html = "";
   for (const g of GROUPS) {
     const rows = list.filter(r => tierOf(r) === g.key);
@@ -604,7 +738,7 @@ function renderWatch(pass) {
         <thead><tr><th>Token</th><th class="num">RSI last touch</th><th class="num">Volume (24h)</th><th class="num">% to ${esc(g.short)} high</th></tr></thead><tbody>`;
       for (const r of nr) {
         const p = pctFor(r, g.pct);
-        html += `<tr><td class="coin"><a href="${tvUrl(r.base)}" target="_blank" rel="noopener" title="Open ${esc(r.base)} on TradingView">${esc(r.base)}</a>${r.partial52 ? `<span class="flag" title="Less than 52 weeks of history">new</span>` : ""}</td>
+        html += `<tr><td><a class="coin" href="${tvUrl(r.base)}" target="_blank" rel="noopener" title="Open ${esc(r.base)} on TradingView">${esc(r.base)}<span class="ext" aria-hidden="true">↗</span></a>${r.partial52 ? `<span class="flag" title="Less than 52 weeks of history">new</span>` : ""}${planBtn(r.base)}</td>
           <td class="num">${fmtRsi(r.swing)}</td><td class="num">${fmtVol(r.vol24)}</td>
           <td class="num ${p >= 0 ? "pos" : "neg"}">${fmtPct(p)}</td></tr>`;
       }
@@ -621,18 +755,19 @@ function nearestHigh(r) {   // % to the high that matters for this token's tier
   return { pct: pctFor(r, g.pct), label: g.short };
 }
 const ALL_COLS = [
-  { key: "base", label: "Token", get: r => r.base, fmt: r => `<a class="coin" href="${tvUrl(r.base)}" target="_blank" rel="noopener">${esc(r.base)}</a>` },
+  { key: "base", label: "Token", get: r => r.base, fmt: r => `<a class="coin" href="${tvUrl(r.base)}" target="_blank" rel="noopener" title="Open ${esc(r.base)} on TradingView">${esc(r.base)}<span class="ext" aria-hidden="true">↗</span></a>` },
   { key: "swing", label: "RSI last touch", num: true, get: r => r.swing, fmt: r => fmtRsi(r.swing) },
   { key: "vol24", label: "Volume (24h)", num: true, get: r => r.vol24, fmt: r => fmtVol(r.vol24) },
   { key: "pctHigh", label: "% to high", num: true, get: r => nearestHigh(r).pct,
     fmt: r => { const h = nearestHigh(r); return `<span class="${h.pct >= 0 ? "pos" : ""}">${fmtPct(h.pct)}</span> <span class="flag">${h.label}</span>`; } },
   { key: "tier", label: "Tier", get: r => GROUPS.findIndex(g => g.key === tierOf(r)), fmt: r => { const g = GROUPS.find(x => x.key === tierOf(r)); return `<span style="color:var(--text-secondary)">${g.emoji} ${esc(g.label)}</span>`; } },
+  { key: "plan", label: "Planner", get: r => (plHas(r.base) ? 1 : 0), fmt: r => planBtn(r.base).replace('class="addp', 'style="margin-left:0" class="addp') },
   { key: "pass", label: "On watchlist", get: r => (screen(r) ? 1 : 0), fmt: r => screen(r) ? `<span class="pass">✓ Yes</span>` : `<span class="fail">–</span>` },
 ];
 function renderAll() {
   const q = S.search;
   const col = ALL_COLS.find(c => c.key === S.sort.key) || ALL_COLS[2];
-  const rows = (q ? S.rows.filter(r => r.base.toLowerCase().includes(q)) : [...S.rows])
+  const rows = S.rows.filter(r => (!q || r.base.toLowerCase().includes(q)) && matchSel(r))
     .sort((a, b) => {
       const va = col.get(a), vb = col.get(b);
       if (va == null && vb == null) return 0; if (va == null) return 1; if (vb == null) return -1;
@@ -651,20 +786,158 @@ function renderAll() {
   }));
 }
 
+/* ---------- planner (saved in this browser; export/import for backup) ---------- */
+const PL_KEY = "scr-planner-v1";
+const STAGES = [
+  { key: "watch",  label: "Watching",       color: "var(--text-muted)" },
+  { key: "setup",  label: "Setup forming",  color: "#eda100" },
+  { key: "plan",   label: "Entry planned",  color: "var(--accent)" },
+  { key: "open",   label: "In trade",       color: "var(--good)" },
+  { key: "closed", label: "Closed / review", color: "#9085e9" },
+];
+const PL = { cards: [] };
+function plLoad() { try { const d = JSON.parse(storage(PL_KEY) || "{}"); PL.cards = Array.isArray(d.cards) ? d.cards : []; } catch (e) { PL.cards = []; } }
+function plSave() { storage(PL_KEY, JSON.stringify({ v: 1, cards: PL.cards })); }
+const plHas = base => PL.cards.some(c => c.base === base && c.status !== "closed");
+function plAdd(base, status = "watch") {
+  base = String(base || "").trim().toUpperCase().replace(/-?USDT(-SWAP|\.P)?$/, "");
+  if (!base) return false;
+  if (plHas(base)) return false;
+  const now = new Date().toISOString();
+  PL.cards.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), base, status, note: "", entry: "", sl: "", tp: "", created: now, updated: now });
+  plSave(); return true;
+}
+function plCard(id) { return PL.cards.find(c => c.id === id); }
+function plTouch(c) { c.updated = new Date().toISOString(); plSave(); }
+function rrText(c) {
+  const e = parseFloat(c.entry), sl = parseFloat(c.sl), tp = parseFloat(c.tp);
+  if (!(e > 0) || !(sl > 0)) return "Set entry & stop for R:R";
+  const long = sl < e, risk = Math.abs(e - sl), riskPct = risk / e * 100;
+  let s = `${long ? "Long" : "Short"} · risk <b>${riskPct.toFixed(1)}%</b>`;
+  if (tp > 0) {
+    const reward = long ? tp - e : e - tp;
+    s += reward > 0 ? ` · R:R <b>${(reward / risk).toFixed(2)}</b>` : ` · <span style="color:var(--critical-text)">target on wrong side</span>`;
+  }
+  return s;
+}
+const ago = iso => { const m = (Date.now() - Date.parse(iso)) / 6e4; return m < 1 ? "just now" : m < 60 ? Math.round(m) + "m ago" : m < 1440 ? Math.round(m / 60) + "h ago" : Math.round(m / 1440) + "d ago"; };
+function cardHtml(c) {
+  const r = S.rows.find(x => x.base === c.base);
+  let meta = `<span style="color:var(--text-muted)">Not in latest scan</span>`;
+  if (r) {
+    const g = GROUPS.find(x => x.key === tierOf(r)), hi = nearestHigh(r);
+    meta = `${g.emoji} ${esc(g.label)} · ${screen(r) ? `<span class="pass">on watchlist</span>` : "off watchlist"}<br>
+      % to ${hi.label} high <b>${fmtPct(hi.pct)}</b> · RSI touch <b>${fmtRsi(r.swing)}</b> · Vol <b>${fmtVol(r.vol24)}</b>`;
+  }
+  const opts = STAGES.map(st => `<option value="${st.key}" ${st.key === c.status ? "selected" : ""}>${st.label}</option>`).join("");
+  return `<div class="pc" draggable="true" data-id="${c.id}">
+    <div class="pc-top"><a class="coin" href="${tvUrl(c.base)}" target="_blank" rel="noopener" title="Open on TradingView">${esc(c.base)}<span class="ext" aria-hidden="true">↗</span></a>
+      <button class="del" type="button" data-act="del" title="Delete card" aria-label="Delete ${esc(c.base)} card">✕</button></div>
+    <div class="pc-meta">${meta}</div>
+    <div class="pc-lv">
+      <label>Entry<input inputmode="decimal" data-f="entry" value="${esc(c.entry)}"></label>
+      <label>Stop<input inputmode="decimal" data-f="sl" value="${esc(c.sl)}"></label>
+      <label>Target<input inputmode="decimal" data-f="tp" value="${esc(c.tp)}"></label>
+    </div>
+    <div class="pc-rr">${rrText(c)}</div>
+    <textarea data-f="note" placeholder="Notes: setup, reason, invalidation, lessons…">${esc(c.note)}</textarea>
+    <div class="pc-foot"><span title="${esc(c.updated)}">Updated ${ago(c.updated)}</span><select data-f="status" aria-label="Move card">${opts}</select></div>
+  </div>`;
+}
+function renderPlanner() {
+  $("cPlan").textContent = PL.cards.length || "";
+  $("plTokens").innerHTML = S.rows.map(r => `<option value="${esc(r.base)}">`).join("");
+  if (S.tab !== "plan") return;
+  $("board").innerHTML = STAGES.map(st => {
+    const cards = PL.cards.filter(c => c.status === st.key);
+    return `<div class="col" data-status="${st.key}"><div class="col-h"><span class="dot" style="background:${st.color}"></span>${st.label}<span class="n">${cards.length}</span></div>
+      <div class="col-b">${cards.length ? cards.map(cardHtml).join("") : `<div class="col-empty">${st.key === "watch" ? "Add tokens with the + Plan button in the watchlist, or type one above." : "Drag cards here"}</div>`}</div></div>`;
+  }).join("");
+}
+function plMove(id, status) { const c = plCard(id); if (!c || c.status === status) return; c.status = status; plTouch(c); renderPlanner(); render(); }
+(function bindPlanner() {
+  const board = $("board");
+  // edits: save on input without re-rendering (keeps focus while typing)
+  board.addEventListener("input", e => {
+    const el = e.target, f = el.dataset.f, card = el.closest(".pc"); if (!f || !card || f === "status") return;
+    const c = plCard(card.dataset.id); if (!c) return;
+    c[f] = el.value; plTouch(c);
+    if (f !== "note") card.querySelector(".pc-rr").innerHTML = rrText(c);
+  });
+  board.addEventListener("change", e => { if (e.target.dataset.f === "status") plMove(e.target.closest(".pc").dataset.id, e.target.value); });
+  board.addEventListener("click", e => {
+    const b = e.target.closest("[data-act=del]"); if (!b) return;
+    const card = b.closest(".pc"), c = plCard(card.dataset.id);
+    if (c && (!c.note && !c.entry) || confirmDelete(card)) { PL.cards = PL.cards.filter(x => x.id !== card.dataset.id); plSave(); renderPlanner(); render(); }
+  });
+  // drag & drop between columns
+  let dragId = null;
+  board.addEventListener("dragstart", e => {
+    const card = e.target.closest(".pc"); if (!card || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    dragId = card.dataset.id; card.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", dragId);
+  });
+  board.addEventListener("dragend", e => { const card = e.target.closest(".pc"); if (card) card.classList.remove("dragging"); board.querySelectorAll(".col.drop").forEach(c => c.classList.remove("drop")); });
+  board.addEventListener("dragover", e => { const col = e.target.closest(".col"); if (!col || !dragId) return; e.preventDefault(); board.querySelectorAll(".col.drop").forEach(c => c !== col && c.classList.remove("drop")); col.classList.add("drop"); });
+  board.addEventListener("drop", e => { const col = e.target.closest(".col"); if (!col || !dragId) return; e.preventDefault(); const id = dragId; dragId = null; plMove(id, col.dataset.status); });
+  // add / export / import
+  const add = () => { const v = $("plAdd").value; if (plAdd(v)) { $("plAdd").value = ""; renderPlanner(); render(); } else if (v) { $("plAdd").select(); } };
+  $("plAddBtn").addEventListener("click", add);
+  $("plAdd").addEventListener("keydown", e => { if (e.key === "Enter") add(); });
+  $("plExport").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify({ v: 1, exported: new Date().toISOString(), cards: PL.cards }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `screener-planner-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  $("plImportBtn").addEventListener("click", () => $("plImport").click());
+  $("plImport").addEventListener("change", async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text()); if (!Array.isArray(d.cards)) throw new Error("no cards");
+      const ids = new Set(PL.cards.map(c => c.id));
+      d.cards.forEach(c => { if (c && c.id && c.base && !ids.has(c.id)) PL.cards.push({ note: "", entry: "", sl: "", tp: "", status: "watch", ...c }); });
+      plSave(); renderPlanner(); render();
+    } catch (err) { alertBanner("That file isn't a planner export."); }
+    e.target.value = "";
+  });
+})();
+function confirmDelete(card) {   // inline confirm instead of a browser dialog
+  if (card.dataset.confirm) return true;
+  card.dataset.confirm = "1"; const b = card.querySelector("[data-act=del]");
+  b.textContent = "Delete?"; b.style.fontSize = "11px"; b.style.color = "var(--critical-text)";
+  setTimeout(() => { if (card.isConnected) { delete card.dataset.confirm; b.textContent = "✕"; b.style.cssText = ""; } }, 3000);
+  return false;
+}
+function alertBanner(msg) { $("banner").innerHTML = `<div class="card banner">${esc(msg)}</div>`; setTimeout(() => $("banner").innerHTML = "", 4000); }
+function planBtn(base) {
+  return plHas(base) ? `<button class="addp in" type="button" data-plan="${esc(base)}" title="Already in planner — open planner">✓ Planned</button>`
+                     : `<button class="addp" type="button" data-plan="${esc(base)}" title="Add ${esc(base)} to planner">+ Plan</button>`;
+}
+// one delegated handler for every "+ Plan" button (tables re-render often)
+document.addEventListener("click", e => {
+  const b = e.target.closest(".addp"); if (!b) return;
+  const base = b.dataset.plan;
+  if (plHas(base)) { document.querySelector('.tab[data-tab="plan"]').click(); return; }
+  plAdd(base); b.outerHTML = planBtn(base); renderPlanner();
+});
+
 /* ---------- master render ---------- */
 function render() {
   if (!S.rows.length) return;
   const pass = S.rows.filter(screen);
-  renderKpis(pass); renderBars(pass); renderScatter(pass);
-  $("cWatch").textContent = pass.length; $("cAll").textContent = S.rows.length;
-  if (S.tab === "watch") renderWatch(pass); else renderAll();
+  const view = pass.filter(r => matchSel(r));   // watchlist after cross-filter selections
+  renderChips(); renderKpis(view); renderBars(pass); renderScatter(pass);
+  $("cWatch").textContent = view.length; $("cAll").textContent = S.rows.filter(r => matchSel(r)).length;
+  if (S.tab === "watch") renderWatch(view); else if (S.tab === "all") renderAll();
+  renderPlanner();
 }
+addEventListener("keydown", e => {
+  if (e.key === "Escape" && !/INPUT|SELECT/.test(document.activeElement.tagName)) clearSel();
+});
 
 /* ---------- tabs & search ---------- */
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
   S.tab = t.dataset.tab;
   document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", String(x === t)));
-  $("panelWatch").hidden = S.tab !== "watch"; $("panelAll").hidden = S.tab !== "all";
+  $("panelWatch").hidden = S.tab !== "watch"; $("panelAll").hidden = S.tab !== "all"; $("panelPlan").hidden = S.tab !== "plan";
   render();
 }));
 $("search").addEventListener("input", e => { S.search = e.target.value.trim().toLowerCase(); render(); });
@@ -692,6 +965,10 @@ async function load() {
       RSI D1 above the minimum, swing-high RSI (highest daily RSI14 in the last ${S.cols.swingDays ?? 22} days) above the minimum,
       ${S.cols.avgDays ?? 14}-day average volume above the liquidity floor, and price within the near-high band of a 3M/6M/52W/ATH level.
       Changing the filters above only changes this page, not the screener itself.<br>
+      <b>Interactions.</b> Click a tier bar, a quadrant or a network in the legend to filter every other visual (click again, use the chips, or press Esc to clear).
+      Click a bubble or a token name to open it on TradingView.<br>
+      <b>Planner.</b> Use <i>+ Plan</i> on any token to add a card, then move it from Watching to Closed as the trade develops. Notes, entry, stop and target are saved in this browser only —
+      use <i>Export</i> to back them up or move them to another device, and <i>Import</i> to load them back.<br>
       <b>BOS</b> = break of structure (the 52W/6M/3M high was broken). <b>Approaching</b> = not broken yet, but within the band of that level.
       Network grouping is a best-effort lookup. <b>⚠️ Trade at your own risk</b> — this is a screen, not a signal.`;
     render();
@@ -706,6 +983,7 @@ async function load() {
 }
 $("reload").addEventListener("click", load);
 bindFilters();
+plLoad();
 load();
 </script>
 </body>
