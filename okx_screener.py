@@ -1,40 +1,39 @@
 """
-OKX MA100 Demarcation Line Screener - Multi-Timeframe (MTF) variant
-=====================================================================
+OKX MA100 Demarcation Line Screener - v1.4 (D1 + H4 + H1 filter, M30/M15/M5 info)
+===================================================================================
+
+v1.4 CHANGE: also records the MA100 demarcation check on M30, M15 and M5
+(Above_M30 / Above_M15 / Above_M5 + Close_/MA100_ columns) for tokens that
+pass the D1+H4+H1 gate, so the dashboard can offer them as optional filters.
+They are INFORMATIONAL only - they don't change the watchlist or the Discord
+digest. Values are a snapshot as of each run.
+
+v1.2 CHANGE: H4 and H1 are now HARD FILTERS alongside D1. A token must be
+trading above its own MA100 demarcation line on D1 AND H4 AND H1 to pass
+(Above_All_TF = Above_D1 & Above_H4 & Above_H1) - the same three ticks as
+the 1H/4H/1D rows of the TradingView "MA100 Demarcation [MTF]" table.
+H4/H1 candles are only fetched for tokens that already pass D1, so the
+extra cost is limited to the D1 survivors. Everything else (RSI filters,
+near-high filter, liquidity, Discord layout) is unchanged from v1.1.
+To drop a timeframe from the gate again, remove it from TIMEFRAMES.
 
 Companion to okx_swap_screener.py, originally built to mirror the "MA100
 Demarcation Line [MTF]" Pine Script indicator's multi-timeframe check.
-
-*** This is the MTF variant of okx_demarcation_screener.py. ***
-NOTE: H4 and H1 MA100 demarcation checks have been added back on top of
-D1, purely for PROBABILITY STACKING - i.e. extra confluence context (how
-many timeframes a token is trending above its own MA100 on at once), NOT
-as additional hard filter requirements. The required filter set below is
-UNCHANGED from the D1-only script: Above_All_TF still means "above the D1
-MA100 demarcation line" and alone decides who makes the
-okx_demarcation_above_all_latest.csv list. Above_H4/Above_H1 (plus the
-summary TF_Stack_Count/TF_Stack_All columns described under "Multi-
-timeframe stacking columns" below) are additional INFORMATIONAL columns
-on every CSV - use them to rank/filter candidates within the existing
-D1-qualified list by how much multi-timeframe confluence they also have,
-rather than to exclude anyone from it. If you want H4/H1 to become hard
-requirements again (like the pre-MTF version of this screener briefly
-did), that's a one-line change - see TF_STACK_HARD_GATE near the top of
-the CONFIG section.
-
-For every live USDT-margined perpetual swap on OKX, pulls D1 candles,
-computes the MA100, and keeps tokens whose current price is trading
-ABOVE it as the final list (Above_All_TF) - same as the D1-only script.
-H4 and H1 candles are pulled alongside D1 purely to populate the stacking
-columns.
+TIMEFRAMES is now D1 only - price above its own MA100 demarcation line on
+the daily is the sole trend gate (Above_All_TF), in place of the earlier
+AOTS_D1 stack requirement. For every live USDT-margined perpetual swap on
+OKX, pulls D1 candles, computes the MA100, and keeps ONLY the tokens
+whose current price is trading ABOVE it. (An earlier version of this
+screener also gated on H4 - that's been dropped; Above_All_TF now just
+mirrors Above_D1.)
 
 Final filter set (all required, ANDed together, all ON by default)
 ---------------------------------------------------------------------
-  1. Above_All_TF    - price above the MA100 demarcation line on D1
-                        (Above_D1). This is the sole trend gate - AOTS_D1
+  1. Above_All_TF    - price above the MA100 demarcation line on D1, H4
+                        AND H1 (Above_D1 & Above_H4 & Above_H1, v1.2). D1
+                        is checked first - AOTS_D1
                         is no longer part of the required filter set, see
-                        "AOTS info columns" below. (H4/H1 are informational
-                        only here - see the MTF note above.)
+                        "AOTS info columns" below.
   2. RSI_D1 > 50      - daily RSI14 strictly above --min-rsi (default 50)
   3. RSI touch (N-day) - RSI_Highest_<N>D > --min-swing-high-rsi (default
                         70): the highest daily RSI14 touched anywhere in
@@ -49,31 +48,6 @@ Liquidity (--min-liquidity-usd, default $500,000, checked against a
 trailing 14-day AVERAGE daily USDT volume - see "Liquidity filter + sort"
 below) is an additional floor/sort key on top of these, not part of the
 "final" list above.
-
-Multi-timeframe stacking columns (informational only - not a filter)
----------------------------------------------------------------------
-Added back for probability stacking: alongside Above_D1, every row now
-also gets Above_H4 and Above_H1 (same "close above its own MA100
-demarcation line" check, computed independently on the 4-hour and
-1-hour timeframes), plus their own Close_H4/MA100_H4/MA_Alignment_H4/
-AOTS_H4 and Close_H1/MA100_H1/MA_Alignment_H1/AOTS_H1 columns (mirrors
-of the D1 ones, see "AOTS info columns" below).
-
-Two summary columns roll these up:
-  TF_Stack_Count - how many of {D1, H4, H1} the token is currently above
-                   its own MA100 on (0-3). Use this to rank/sort the
-                   Above_All_TF list by confluence strength - a 3/3 stack
-                   is a stronger, higher-probability signal than a 1/3.
-  TF_Stack_All   - True only when Above_D1 AND Above_H4 AND Above_H1 are
-                   all True (the full 3-timeframe stack) - a quick
-                   boolean filter for "show me only the fully-stacked
-                   ones" in Power BI, without changing what makes the
-                   required Above_All_TF list in the first place.
-Set TF_STACK_HARD_GATE = True (near the top of CONFIG) to fold
-TF_Stack_All into Above_All_TF itself, turning this back into a hard
-D1+H4+H1 requirement like the screener's pre-MTF behaviour - off by
-default so the MTF columns stay purely additive/informational, per the
-"add it for probability stacking" request this variant was built for.
 
 Why "current price" instead of only fully-closed candles
 ----------------------------------------------------------
@@ -112,17 +86,13 @@ for context or for building your own AOTS filter on the Power BI side.
 
 Output
 ------
-Writes three CSVs per run into --output-dir:
-  okx_demarcation_scan_<UTC date>.csv   - every live instrument, with an
+Writes two CSVs per run into --output-dir:
+  okx_demarcation_scan_<UTC date>.csv   - every live instrument, with a
                                            Above_<TF> column per timeframe
-                                           (D1, H4, H1) plus Above_All_TF
-                                           and the TF_Stack_Count/
-                                           TF_Stack_All confluence columns
+                                           plus Above_All_TF
   okx_demarcation_latest.csv            - same, overwritten every run
   okx_demarcation_above_all_latest.csv  - ONLY the Above_All_TF == True rows
-                                           (the actual screener output -
-                                           still gated on D1 alone unless
-                                           TF_STACK_HARD_GATE is turned on)
+                                           (the actual screener output)
 
 Requirements
 ------------
@@ -262,18 +232,15 @@ by 3 "approaching but not broken yet" tiers that replace the old single,
 confusing "No BOS Break" catch-all, split by which window a token is
 closest to breaking next - "🟣 Approaching 52W High (N)", "🟡 Approaching
 6M High (N)", "🟠 Approaching 3M High (N)". Within EACH of the 6 groups,
-rows are further sub-grouped by network into 5 buckets - Solana,
-Ethereum (its base chain plus L2s/appchains, so Arbitrum/Optimism/zkSync
-etc. don't get their own tiny groups), Bitcoin (BTC plus its L2s),
-Tokenized Equities/ETFs (OKX's stock perpetuals like NVDA/META/MSTR -
-not a blockchain network, kept separate rather than mixed in with
-crypto), and Other Networks for the genuine long tail (smaller L1s like
-Avalanche/Sui/Aptos/Celestia/etc., and anything unclassified) - see
-simplify_network()/get_network()/NETWORK_MAP (OKX's API has no chain
-metadata, so this is a hand-maintained, non-authoritative table). Rows
-within a network bucket are sorted by % to that group's high level
-descending, then by the swing-high RSI value descending. A group too big
-for one Discord field (~1000 chars) spans multiple fields ("...
+rows are further sub-grouped by network into just 3 broad buckets -
+Solana, Ethereum (its base chain plus L2s/appchains, so Arbitrum/
+Optimism/zkSync etc. don't get their own tiny groups), and Other Networks
+for everything else (other L1s, tokenized equities like NVDA/META/MSTR,
+unclassified) - see simplify_network()/get_network()/NETWORK_MAP (OKX's
+API has no chain metadata, so this is a hand-maintained, non-authoritative
+table). Rows within a network bucket are sorted by % to that group's high
+level descending, then by the swing-high RSI value descending. A group
+too big for one Discord field (~1000 chars) spans multiple fields ("...
 (cont'd 2/3)") rather than silently dropping tokens. Simple, plain line
 per token - no YES/NO, no checkmarks, no color dots:
     **{Network Bucket}**
@@ -347,23 +314,25 @@ TICKERS_ENDPOINT = "/api/v5/market/tickers"
 HISTORY_CANDLES_ENDPOINT = "/api/v5/market/history-candles"
 
 # Timeframe label -> OKX `bar` param. Order here is display/column order.
-# D1 remains the sole REQUIRED trend gate (Above_All_TF = Above_D1, same
-# as the single-timeframe script) - H4 and H1 are back for probability
-# stacking: extra confluence columns (Above_H4/Above_H1 +
-# TF_Stack_Count/TF_Stack_All, see the module docstring) computed and
-# written to every CSV, but not ANDed into Above_All_TF unless
-# TF_STACK_HARD_GATE below is turned on.
+# D1 only - a token must be above its MA100 demarcation line on the daily
+# to pass (Above_All_TF). (H4 was tried as a second gate and has been
+# dropped - Above_All_TF is now just Above_D1.)
 TIMEFRAMES: dict[str, str] = {
     "D1": "1D",
-    "H4": "4H",
-    "H1": "1H",
+    "H4": "4H",   # v1.2: hard filter
+    "H1": "1H",   # v1.2: hard filter
 }
+# Lower timeframes that must ALSO be above their MA100 (D1 is always checked).
+# Derived from TIMEFRAMES so removing an entry there drops it from the gate.
+INTRADAY_GATE_TFS: list[str] = [tf for tf in TIMEFRAMES if tf != "D1"]
 
-# Set True to fold the full D1+H4+H1 stack (TF_Stack_All) into
-# Above_All_TF itself, making H4/H1 hard requirements again instead of
-# informational stacking columns. Off by default - see the module
-# docstring's "Multi-timeframe stacking columns" section.
-TF_STACK_HARD_GATE = False
+# v1.4: lower timeframes recorded for the dashboard's optional filters (not part
+# of the gate). Only checked for tokens that already pass D1+H4+H1, to save calls.
+INFO_TIMEFRAMES: dict[str, str] = {
+    "M30": "30m",
+    "M15": "15m",
+    "M5": "5m",
+}
 
 MA_LEN = 100                 # matches the indicator's "MA Length" input
 MA_TYPE_DEFAULT = "SMA"      # matches the indicator's default "MA Type" input
@@ -900,7 +869,6 @@ def compute_row(
     near_high_threshold_pct: float = NEAR_HIGH_THRESHOLD_PCT,
     swing_high_lookback_days: int = SWING_HIGH_LOOKBACK_DAYS,
     avg_vol_lookback_days: int = AVG_VOL_LOOKBACK_DAYS_DEFAULT,
-    tf_stack_hard_gate: bool = TF_STACK_HARD_GATE,
 ) -> dict:
     """One deep D1 fetch per instrument feeds everything - Close_D1/
     MA100_D1/Above_D1 (the "above MA100" trend gate), MA_Alignment_D1/
@@ -908,18 +876,9 @@ def compute_row(
     docstring), RSI_D1, the 3M/6M/52W/ATH high-break + near-high flags,
     the two RSI-touch windows (21D display + the swing-high-lookback-days
     filter window), and the N-day average USDT volume (the liquidity
-    filter - see compute_avg_volume()).
-
-    Two lighter extra fetches (just CANDLE_FETCH_LIMIT recent bars each,
-    not deep history) get the same MA100 status on H4 and H1, added back
-    for probability stacking (see "Multi-timeframe stacking columns" in
-    the module docstring) - these feed Above_H4/Above_H1 + the
-    TF_Stack_Count/TF_Stack_All confluence columns.
-
-    tf_stack_hard_gate: when True, folds TF_Stack_All (the full D1+H4+H1
-    stack) into Above_All_TF itself instead of leaving H4/H1 purely
-    informational - set via --tf-stack-hard-gate on the CLI, or change the
-    TF_STACK_HARD_GATE default near the top of CONFIG. Off by default."""
+    filter - see compute_avg_volume()). Above_All_TF is just Above_D1 -
+    an earlier version of this screener also gated on H4, that's been
+    dropped."""
     row: dict = {
         "InstId": inst_id,
         "BaseCcy": inst_id.split("-")[0],
@@ -935,34 +894,6 @@ def compute_row(
     row["MA_Alignment_D1"] = status["ma_alignment"]
     row["AOTS_D1"] = status["is_aots"]
 
-    # H4 / H1 - probability-stacking columns only (see module docstring).
-    # Reuses TIMEFRAMES' bar strings so this stays in sync with the config
-    # block if someone retunes which bars "H4"/"H1" map to.
-    df_h4 = get_candles(session, inst_id, TIMEFRAMES["H4"], closed_only=closed_only)
-    status_h4 = compute_tf_status(df_h4, ma_type=ma_type)
-    row["Close_H4"] = status_h4["close"]
-    row["MA100_H4"] = round(status_h4["ma100"], 8) if status_h4["ma100"] is not None else None
-    row["Above_H4"] = status_h4["is_above"]
-    row["MA_Alignment_H4"] = status_h4["ma_alignment"]
-    row["AOTS_H4"] = status_h4["is_aots"]
-
-    df_h1 = get_candles(session, inst_id, TIMEFRAMES["H1"], closed_only=closed_only)
-    status_h1 = compute_tf_status(df_h1, ma_type=ma_type)
-    row["Close_H1"] = status_h1["close"]
-    row["MA100_H1"] = round(status_h1["ma100"], 8) if status_h1["ma100"] is not None else None
-    row["Above_H1"] = status_h1["is_above"]
-    row["MA_Alignment_H1"] = status_h1["ma_alignment"]
-    row["AOTS_H1"] = status_h1["is_aots"]
-
-    # insufficient data can't be confirmed True, so it counts as False for
-    # the stack tally - a token with no H4/H1 history yet just scores lower
-    # on TF_Stack_Count rather than breaking the count.
-    above_d1_bool = bool(status["is_above"])
-    above_h4_bool = bool(status_h4["is_above"])
-    above_h1_bool = bool(status_h1["is_above"])
-    row["TF_Stack_Count"] = int(above_d1_bool) + int(above_h4_bool) + int(above_h1_bool)
-    row["TF_Stack_All"] = above_d1_bool and above_h4_bool and above_h1_bool
-
     row.update(compute_high_breaks(df, history_is_complete, near_threshold_pct=near_high_threshold_pct))
     row.update(compute_rsi_touch(df))  # 21D touch (Discord WATCHLISTS line + sort key)
     row.update(compute_rsi_touch(df, threshold=SWING_HIGH_RSI_MIN_DEFAULT, lookback_days=swing_high_lookback_days))  # filter-relevant Nd touch
@@ -971,10 +902,38 @@ def compute_row(
     rsi = wilder_rsi(df["close"]) if not df.empty else None
     row["RSI_D1"] = round(rsi, 2) if rsi is not None else None
 
-    # Above_All_TF stays D1-only (same trend gate as the single-timeframe
-    # script) unless tf_stack_hard_gate is turned on, in which case the
-    # full D1+H4+H1 stack becomes the hard requirement again.
-    row["Above_All_TF"] = (row["TF_Stack_All"] if tf_stack_hard_gate else above_d1_bool)
+    # v1.2: H4/H1 MA100 checks. Only fetched when D1 already passes - a token
+    # below its D1 MA100 can't make the list anyway, so this saves ~2 API
+    # calls per failing token. Uses the light CANDLE_FETCH_LIMIT window (MA100
+    # + buffer), forming bar included unless --closed-only, matching the live
+    # TradingView table. Insufficient history counts as not-above.
+    all_above = bool(status["is_above"])
+    for tf in INTRADAY_GATE_TFS:
+        if all_above:
+            tf_df = get_candles(session, inst_id, TIMEFRAMES[tf], closed_only=closed_only)
+            tf_status = compute_tf_status(tf_df, ma_type=ma_type)
+        else:
+            tf_status = {"close": None, "ma100": None, "is_above": None,
+                         "ma_alignment": "Not Checked (below D1 MA100)", "is_aots": None}
+        row[f"Close_{tf}"] = tf_status["close"]
+        row[f"MA100_{tf}"] = round(tf_status["ma100"], 8) if tf_status["ma100"] is not None else None
+        row[f"Above_{tf}"] = tf_status["is_above"]
+        row[f"MA_Alignment_{tf}"] = tf_status["ma_alignment"]
+        row[f"AOTS_{tf}"] = tf_status["is_aots"]
+        all_above = all_above and bool(tf_status["is_above"])
+
+    # insufficient data can't be confirmed True, so it counts as False here.
+    row["Above_All_TF"] = all_above
+
+    # v1.4: informational M30/M15/M5 MA100 checks (not part of Above_All_TF)
+    for tf, bar in INFO_TIMEFRAMES.items():
+        if all_above:
+            tf_status = compute_tf_status(get_candles(session, inst_id, bar, closed_only=closed_only), ma_type=ma_type)
+        else:
+            tf_status = {"close": None, "ma100": None, "is_above": None}
+        row[f"Close_{tf}"] = tf_status["close"]
+        row[f"MA100_{tf}"] = round(tf_status["ma100"], 8) if tf_status["ma100"] is not None else None
+        row[f"Above_{tf}"] = tf_status["is_above"]
     row["AOTS_All_TF"] = bool(status["is_aots"])  # informational only
     row["LastRefreshed"] = dt.datetime.now(dt.timezone.utc).isoformat()
     return row
@@ -1040,51 +999,24 @@ def get_network(base_ccy: str) -> str:
 # simplify_network() below rather than each getting its own group.
 ETH_L2_TOKENS: set[str] = {"ARB", "OP", "WLD", "MAGIC", "ZK", "OKB"}
 
-# "Other Networks" used to be a single catch-all covering everything that
-# wasn't Solana or Ethereum - that meant Bitcoin itself, half a dozen other
-# L1s (Avalanche, Sui, Aptos, ...), AND tokenized stocks like NVDA/MSTR were
-# all mixed into one vague bucket with no way to tell which was which
-# without opening the CSV. Bitcoin and Tokenized Equities/ETFs are now
-# their own buckets (both are large, recognizable, and NOT the same kind
-# of thing as a random smaller L1), so "Other Networks" is left genuinely
-# small - the long tail of less-common L1s only.
-NETWORK_GROUP_ORDER = ["Solana", "Ethereum", "Bitcoin", "Tokenized Equities/ETFs", "Other Networks"]
+NETWORK_GROUP_ORDER = ["Solana", "Ethereum", "Other Networks"]
 
 
 def simplify_network(base_ccy: str) -> str:
     """Collapses get_network()'s ~15 detailed chain/category labels down to
-    the 5 buckets used for Discord digest sub-grouping:
-      Solana                     - the base chain plus Solana-ecosystem
-                                    tokens (RENDER, PYTH, JUP, etc.)
-      Ethereum                   - the base chain plus its L2s/appchains/
-                                    LayerZero-bridged tokens (Arbitrum,
-                                    Optimism, zkSync, X Layer, Immutable X,
-                                    etc. all land here, not split out)
-      Bitcoin                    - BTC itself plus Bitcoin L2s (Stacks,
-                                    Merlin)
-      Tokenized Equities/ETFs    - OKX's tokenized stock perpetuals
-                                    (NVDA, META, MSTR, ...) - not a
-                                    blockchain network at all, so these no
-                                    longer get mixed in with crypto L1s
-      Other Networks             - the genuine long tail: other L1s not
-                                    common/large enough for their own
-                                    bucket (Avalanche, Sui, Aptos,
-                                    Celestia, Sei, Injective, Kusama,
-                                    Algorand, Zilliqa, Qtum, Neo,
-                                    Berachain, Bittensor, Arweave, Initia,
-                                    and anything unclassified)
-    This is the grouping actually used in the digest - the full per-chain
-    NETWORK_MAP/get_network() detail isn't used directly because it
-    produces too many tiny groups and blows Discord's embed-size budget."""
+    the 3 broad buckets used for Discord digest sub-grouping: "Solana",
+    "Ethereum" (the base chain plus its L2s/appchains/LayerZero-bridged
+    tokens - Arbitrum, Optimism, zkSync, X Layer, Immutable X, etc. all
+    land here instead of each getting their own tiny group), and
+    "Other Networks" for everything else (other L1s, tokenized equities,
+    unclassified). This is the grouping actually used in the digest - the
+    full per-chain NETWORK_MAP/get_network() detail was dropped because it
+    produced too many tiny groups and blew Discord's embed-size budget."""
     network = get_network(base_ccy)
     if "Solana" in network:
         return "Solana"
     if "Ethereum" in network or base_ccy in ETH_L2_TOKENS:
         return "Ethereum"
-    if "Bitcoin" in network:
-        return "Bitcoin"
-    if network == "Tokenized Equities/ETFs":
-        return "Tokenized Equities/ETFs"
     return "Other Networks"
 
 
@@ -1158,8 +1090,7 @@ def _watchlist_line(row: pd.Series, swing_high_rsi_col: str, pct_col: str) -> st
 
 def _group_lines(group_rows: pd.DataFrame, swing_high_rsi_col: str, pct_col: str) -> list[str]:
     """Builds one digest group's WATCHLISTS lines, sub-grouped by network
-    bucket (Solana / Ethereum / Bitcoin / Tokenized Equities-ETFs / Other
-    Networks - see simplify_network(), NETWORK_GROUP_ORDER for the order),
+    bucket (Solana / Ethereum / Other Networks - see simplify_network()),
     each as its own bold header line, in that order - only non-empty
     buckets get a header. Within each network bucket, rows are sorted by
     `pct_col` descending, then by the swing-high RSI value descending
@@ -1222,7 +1153,6 @@ def build_discord_digest(
     total_scanned: int,
     min_rsi: float,
     swing_high_lookback_days: int = SWING_HIGH_LOOKBACK_DAYS,
-    tf_stack_hard_gate: bool = TF_STACK_HARD_GATE,
 ) -> list[dict]:
     """Builds the Discord digest as a LIST of one or more embeds (one per
     Discord message) in the WATCHLISTS layout, grouped into up to 6
@@ -1252,17 +1182,12 @@ def build_discord_digest(
     disclosed via an omission line in the final message's Notes field
     rather than sending unlimited messages. The footer always ends with a
     "Trade at Your Own Risk" disclaimer. No CSV attached."""
-    # The required gate stays D1-only (or the full stack if
-    # tf_stack_hard_gate is on - see --tf-stack-hard-gate / TF_STACK_HARD_GATE)
-    # - TIMEFRAMES also contains H4/H1 now (added for probability stacking,
-    # see module docstring), so build this label from the actual gate
-    # rather than every fetched timeframe.
-    gate_tf_list = "D1+H4+H1 (TF_Stack_All)" if tf_stack_hard_gate else "D1"
+    tf_list = ", ".join(TIMEFRAMES.keys())
     swing_high_rsi_col = f"RSI_Highest_{swing_high_lookback_days}D"
 
     base_title = f"OKX MA100 Demarcation Screener - {run_date} UTC"
     footer_text = (
-        f"{total_scanned} instruments scanned - Above MA100 on {gate_tf_list}, "
+        f"{total_scanned} instruments scanned - Above MA100 on {tf_list}, "
         f"RSI {RSI_FILTER_TF} > {min_rsi:g} | ⚠️ Trade at Your Own Risk"
     )
     notes_name = "\U0001F4DD Notes"
@@ -1270,9 +1195,9 @@ def build_discord_digest(
         "BOS = Break of Structure (52WH/6MH/3MH = the 52-week/6-month/3-month high was broken)\n"
         "Approaching 52W/6M/3M High = hasn't broken a high yet, but is closing in on that window's level next\n"
         f"RSI Swing High Value = highest daily RSI14 touched in the last {swing_high_lookback_days} days\n"
-        "Each section is sub-grouped by network (Solana / Ethereum / Bitcoin / Tokenized Equities-ETFs / "
-        "Other Networks - the smaller/less common chains only), sorted by % then RSI within it - network is "
-        "a best-effort lookup, not authoritative (see NETWORK_MAP in the script)"
+        f"Every token listed is above its MA100 on {', '.join(TIMEFRAMES.keys())}\n"
+        "Each section is sub-grouped by network (Solana / Ethereum / Other Networks), sorted by % then RSI "
+        "within it - network is a best-effort lookup, not authoritative (see NETWORK_MAP in the script)"
     )
     header_name = f"\U0001F4CB WATCHLISTS ({len(above_all)})"
     header_value = "​"
@@ -1407,18 +1332,15 @@ def run_screener(
     avg_vol_lookback_days: int = AVG_VOL_LOOKBACK_DAYS_DEFAULT,
     discord_webhook: str | None = None,
     discord_mention: str | None = None,
-    tf_stack_hard_gate: bool = TF_STACK_HARD_GATE,
 ) -> pd.DataFrame:
     output_dir.mkdir(parents=True, exist_ok=True)
     session = ThrottledSession()
 
     inst_ids = get_live_usdt_swap_instruments(session)
-    tf_count = len(TIMEFRAMES)  # D1 + H4 + H1 fetched per instrument (probability-stacking columns)
-    gate_tf_count = 3 if tf_stack_hard_gate else 1  # what actually gates Above_All_TF - see --tf-stack-hard-gate
+    tf_count = len(TIMEFRAMES)
     log.info(
-        "Scanning %d instruments x %d timeframes (D1/H4/H1, H4+H1 for probability stacking only),"
-        " plus deep D1 history (up to %d extra pages/instrument for the 3M/52W/ATH break flags)"
-        " - this takes a few minutes under OKX's rate limit",
+        "Scanning %d instruments x %d timeframes, plus deep D1 history (up to %d extra pages/instrument"
+        " for the 3M/52W/ATH break flags) - this takes a few minutes under OKX's rate limit",
         len(inst_ids), tf_count, ath_max_history_pages,
     )
 
@@ -1429,7 +1351,6 @@ def run_screener(
                 session, inst_id, ma_type=ma_type, closed_only=closed_only,
                 ath_max_history_pages=ath_max_history_pages,
                 near_high_threshold_pct=near_high_threshold_pct,
-                tf_stack_hard_gate=tf_stack_hard_gate,
                 swing_high_lookback_days=swing_high_lookback_days,
                 avg_vol_lookback_days=avg_vol_lookback_days,
             ))
@@ -1471,15 +1392,13 @@ def run_screener(
     above_all.to_csv(above_all_path, index=False)
 
     log.info(
-        "%d / %d instruments are above the MA100 demarcation line on ALL %d required timeframe(s)"
+        "%d / %d instruments are above the MA100 demarcation line on ALL %d timeframes"
         " (min %d-day avg liquidity: $%s USDT, RSI %s > %s, swing-high (%dD) RSI > %s,"
-        " near-high filter: %s within %s%%) - sorted by %d-day avg volume, highest first"
-        " [H4/H1 fetched for probability stacking (TF_Stack_Count/TF_Stack_All columns), %s]",
-        len(above_all), len(result), gate_tf_count, avg_vol_lookback_days, f"{min_liquidity_usd:,.0f}",
+        " near-high filter: %s within %s%%) - sorted by %d-day avg volume, highest first",
+        len(above_all), len(result), tf_count, avg_vol_lookback_days, f"{min_liquidity_usd:,.0f}",
         RSI_FILTER_TF, f"{min_rsi:g}",
         swing_high_lookback_days, f"{min_swing_high_rsi:g}",
         "on" if require_near_high else "off", f"{near_high_threshold_pct:g}", avg_vol_lookback_days,
-        "required via --tf-stack-hard-gate" if tf_stack_hard_gate else "not required (informational only)",
     )
     if not above_all.empty:
         log.info("Above all TFs: %s", ", ".join(above_all["BaseCcy"].tolist()))
@@ -1492,7 +1411,6 @@ def run_screener(
             embeds = build_discord_digest(
                 above_all, run_date, total_scanned=len(result), min_rsi=min_rsi,
                 swing_high_lookback_days=swing_high_lookback_days,
-                tf_stack_hard_gate=tf_stack_hard_gate,
             )
             for url in webhook_urls:
                 try:
@@ -1609,19 +1527,6 @@ def main() -> None:
         ),
     )
     parser.add_argument(
-        "--tf-stack-hard-gate",
-        dest="tf_stack_hard_gate",
-        action="store_true",
-        default=TF_STACK_HARD_GATE,
-        help=(
-            "MTF variant only. H4 and H1 MA100 demarcation checks are added back alongside D1 for "
-            "probability stacking (TF_Stack_Count 0-3, TF_Stack_All) - informational columns on every "
-            "CSV, NOT required by default. Pass this flag to fold TF_Stack_All into Above_All_TF itself, "
-            "making 'above its own MA100 on D1 AND H4 AND H1' a hard requirement again, same as this "
-            "screener's pre-MTF behaviour. Off by default."
-        ),
-    )
-    parser.add_argument(
         "--discord-webhook",
         default=os.environ.get("DISCORD_WEBHOOK_URL"),
         help=(
@@ -1650,7 +1555,6 @@ def main() -> None:
         min_swing_high_rsi=args.min_swing_high_rsi,
         discord_webhook=args.discord_webhook,
         discord_mention=args.discord_mention,
-        tf_stack_hard_gate=args.tf_stack_hard_gate,
     )
 
     if args.interval_minutes:
