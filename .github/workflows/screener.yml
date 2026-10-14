@@ -4,7 +4,8 @@ on:
   schedule:
     # Every 4 hours at :10 -> 8:10 AM, 12:10 PM, 4:10 PM, 8:10 PM, 12:10 AM, 4:10 AM (Manila time).
     # For hourly instead, change to: "10 * * * *"
-    - cron: "10 */4 * * *"
+    # - cron: "10 */4 * * *"
+    - cron: "10 * * * *"
   workflow_dispatch:   # adds the manual "Run workflow" button
 
 permissions:
