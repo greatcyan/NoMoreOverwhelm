@@ -335,6 +335,12 @@ const LATEST_FILE = "okx_demarcation_latest.csv";
 const LOCAL_BASE = "data/";
 const RAW_BASE = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/data/`;
 
+/* MA100 demarcation timeframes. GATE_TFS = what the screener / Discord digest filters on (ticked by default);
+   the others are optional extra filters on this page only (unticked by default, snapshot as of each run). */
+const ALL_TFS = ["D1", "H4", "H1", "M30", "M15", "M5"];
+const GATE_TFS = ["D1"];
+const TF_LABEL = { D1: "1D", H4: "4H", H1: "1H", M30: "30m", M15: "15m", M5: "5m" };
+
 /* Screener defaults — mirror the Python script's CLI defaults */
 const DEFAULTS = { rsi: 50, swing: 70, liq: 500000, near: 25 };
 const STALE_HOURS = 6; // schedule is every 4h; warn if data is older than this
@@ -447,7 +453,7 @@ function detectColumns(sample) {
   return {
     swing: swing ? swing[0] : null, swingDays: swing ? +swing[1] : null,
     avg: avg ? avg[0] : null, avgDays: avg ? +avg[1] : null,
-    tfs: ["D1", "H4", "H1"].filter(tf => keys.includes("Above_" + tf)),
+    tfs: ALL_TFS.filter(tf => keys.includes("Above_" + tf)),
   };
 }
 
@@ -495,16 +501,17 @@ const pctFor = (r, col) => ({ Pct_From_52W_High: r.pct52, Pct_From_6M_High: r.pc
 function loadFilters() {
   let saved = {};
   try { saved = JSON.parse(storage("scr-filters") || "{}"); } catch (e) {}
+  if (saved.v !== 2) saved = {};   // filter defaults changed in v2 (only 1D is a screener filter)
   S.f = { rsi: DEFAULTS.rsi, swing: DEFAULTS.swing, liq: DEFAULTS.liq, near: DEFAULTS.near, requireNear: true, ...saved };
-  for (const tf of S.tfs) if (S.f["tf_" + tf] === undefined) S.f["tf_" + tf] = true;
+  for (const tf of S.tfs) if (S.f["tf_" + tf] === undefined) S.f["tf_" + tf] = GATE_TFS.includes(tf);
 }
 function syncFilterInputs() {
   $("fRsi").value = S.f.rsi; $("fSwing").value = S.f.swing; $("fNear").value = S.f.near;
   $("fLiq").value = String(S.f.liq);
   if (![...$("fLiq").options].some(o => +o.value === S.f.liq)) $("fLiq").value = "500000";
-  $("tfToggles").innerHTML = S.tfs.map(tf =>
-    `<label><input type="checkbox" data-tf="${tf}" ${S.f["tf_" + tf] ? "checked" : ""}> Above MA100 ${tf}</label>`
-  ).join("") + `<label><input type="checkbox" id="fReqNear" ${S.f.requireNear ? "checked" : ""}> Near a high</label>`;
+  $("tfToggles").innerHTML = `<span style="font-size:13px;color:var(--text-secondary)">Above MA100:</span>` + S.tfs.map(tf =>
+    `<label title="${GATE_TFS.includes(tf) ? "Screener filter" : "Optional — snapshot as of the last run"}"><input type="checkbox" data-tf="${tf}" ${S.f["tf_" + tf] ? "checked" : ""}> ${TF_LABEL[tf]}</label>`
+  ).join("") + `<span class="sep" aria-hidden="true"></span>` + `<label><input type="checkbox" id="fReqNear" ${S.f.requireNear ? "checked" : ""}> Near a high</label>`;
 }
 function bindFilters() {
   const upd = () => {
@@ -512,14 +519,14 @@ function bindFilters() {
     S.f.near = +$("fNear").value || 0; S.f.liq = +$("fLiq").value || 0;
     $("tfToggles").querySelectorAll("input[data-tf]").forEach(cb => S.f["tf_" + cb.dataset.tf] = cb.checked);
     const rn = $("fReqNear"); if (rn) S.f.requireNear = rn.checked;
-    storage("scr-filters", JSON.stringify(S.f));
+    storage("scr-filters", JSON.stringify({ ...S.f, v: 2 }));
     render();
   };
   ["fRsi", "fSwing", "fNear", "fLiq"].forEach(id => $(id).addEventListener("input", upd));
   $("tfToggles").addEventListener("change", upd);
   $("fReset").addEventListener("click", () => {
-    S.f = { ...DEFAULTS, requireNear: true }; S.tfs.forEach(tf => S.f["tf_" + tf] = true);
-    storage("scr-filters", JSON.stringify(S.f)); syncFilterInputs(); render();
+    S.f = { ...DEFAULTS, requireNear: true }; S.tfs.forEach(tf => S.f["tf_" + tf] = GATE_TFS.includes(tf));
+    storage("scr-filters", JSON.stringify({ ...S.f, v: 2 })); syncFilterInputs(); render();
   });
 }
 
@@ -559,12 +566,13 @@ function renderChips() {
 function renderKpis(pass) {
   const by = k => pass.filter(r => tierOf(r) === k).length;
   const bos = pass.filter(r => r.bos !== "NONE").length;
-  const fullStack = S.tfs.length ? S.rows.filter(r => S.tfs.every(tf => r.above[tf])).length : 0;
+  const gate = S.tfs.filter(tf => S.f["tf_" + tf]);
+  const fullStack = gate.length ? S.rows.filter(r => gate.every(tf => r.above[tf])).length : 0;
   const tiles = [
     { label: "Watchlist", value: pass.length, foot: `of ${S.rows.length} scanned` },
     { label: "Broke a high (BOS)", value: bos, foot: `${by("52WH")} × 52W · ${by("6MH")} × 6M · ${by("3MH")} × 3M` },
     { label: "Approaching a high", value: pass.length - bos, foot: `within ${S.f.near}% of a level` },
-    { label: `Above MA100 on ${S.tfs.join("+") || "D1"}`, value: fullStack, foot: "all instruments, before RSI filters" },
+    { label: `Above MA100 on ${gate.map(t => TF_LABEL[t]).join("+") || "1D"}`, value: fullStack, foot: "all instruments, before RSI filters" },
     { label: "Last refreshed", value: S.lastTime ? S.lastTime.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "–",
       foot: S.lastTime ? S.lastTime.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " · " + S.ageText : "", small: true },
   ];
@@ -697,7 +705,7 @@ function renderScatter(pass) {
   $("scatterLegend").querySelectorAll("button").forEach(b => b.addEventListener("click", () => toggleSel("net", b.dataset.net)));
 }
 function tipHtml(p) {
-  const tf = S.tfs.map(t => `${t} ${p.above[t] ? "✓" : "✗"}`).join("  ");
+  const tf = S.tfs.filter(t => p.above[t] != null).map(t => `${TF_LABEL[t]} ${p.above[t] ? "✓" : "✗"}`).join(" ");
   return `<b>${esc(p.base)}</b> <span style="color:var(--text-muted)">· ${esc(p.net)}</span>
     <div class="row"><span>Close</span><span>${fmtPrice(p.close)}</span></div>
     <div class="row"><span>% from 52WH</span><span>${fmtPct(p.pct52)}</span></div>
@@ -720,7 +728,7 @@ function hideTip() { $("tip").style.display = "none"; }
 
 /* ---------- render: watchlist (Discord layout) ---------- */
 function tfBadges(r) {
-  return `<span class="tf">${S.tfs.map(tf => `<span class="${r.above[tf] ? "on" : r.above[tf] === false ? "off" : ""}" title="Above MA100 on ${tf}: ${r.above[tf] ? "yes" : r.above[tf] === false ? "no" : "not checked"}">${tf}</span>`).join("")}</span>`;
+  return `<span class="tf">${S.tfs.map(tf => `<span class="${r.above[tf] ? "on" : r.above[tf] === false ? "off" : ""}" title="Above MA100 on ${TF_LABEL[tf]}: ${r.above[tf] ? "yes" : r.above[tf] === false ? "no" : "not checked"}">${TF_LABEL[tf]}</span>`).join("")}</span>`;
 }
 function renderWatch(pass) {
   const q = S.search;
@@ -961,7 +969,7 @@ async function load() {
       $("dot").className = "status-dot" + (ageH > STALE_HOURS ? " stale" : "");
     } else $("refreshed").textContent = "Data loaded";
     $("notes").innerHTML = `
-      <b>How to read this.</b> The watchlist uses the same rules as the Discord digest: price above its MA100 demarcation line on ${S.tfs.join(", ") || "D1"},
+      <b>How to read this.</b> The watchlist uses the same rules as the Discord digest: price above its MA100 demarcation line on ${S.tfs.filter(t => GATE_TFS.includes(t)).map(t => TF_LABEL[t]).join(", ") || "1D"},
       RSI D1 above the minimum, swing-high RSI (highest daily RSI14 in the last ${S.cols.swingDays ?? 22} days) above the minimum,
       ${S.cols.avgDays ?? 14}-day average volume above the liquidity floor, and price within the near-high band of a 3M/6M/52W/ATH level.
       Changing the filters above only changes this page, not the screener itself.<br>

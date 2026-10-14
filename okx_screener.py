@@ -1,21 +1,13 @@
 """
-OKX MA100 Demarcation Line Screener - v1.4 (D1 + H4 + H1 filter, M30/M15/M5 info)
-===================================================================================
+OKX MA100 Demarcation Line Screener - v1.5
+===========================================
 
-v1.4 CHANGE: also records the MA100 demarcation check on M30, M15 and M5
-(Above_M30 / Above_M15 / Above_M5 + Close_/MA100_ columns) for tokens that
-pass the D1+H4+H1 gate, so the dashboard can offer them as optional filters.
-They are INFORMATIONAL only - they don't change the watchlist or the Discord
-digest. Values are a snapshot as of each run.
-
-v1.2 CHANGE: H4 and H1 are now HARD FILTERS alongside D1. A token must be
-trading above its own MA100 demarcation line on D1 AND H4 AND H1 to pass
-(Above_All_TF = Above_D1 & Above_H4 & Above_H1) - the same three ticks as
-the 1H/4H/1D rows of the TradingView "MA100 Demarcation [MTF]" table.
-H4/H1 candles are only fetched for tokens that already pass D1, so the
-extra cost is limited to the D1 survivors. Everything else (RSI filters,
-near-high filter, liquidity, Discord layout) is unchanged from v1.1.
-To drop a timeframe from the gate again, remove it from TIMEFRAMES.
+v1.5 CHANGE (vs v1.1): the watchlist and Discord digest are EXACTLY as v1.1
+(D1 MA100 is the only trend gate). Additionally records the MA100 demarcation
+check on H4, H1, M30, M15 and M5 (Above_<TF> / Close_<TF> / MA100_<TF>
+columns) for tokens above their D1 MA100, purely so the dashboard can offer
+them as optional filters. These columns never affect who is listed or what is
+posted to Discord, and a failed fetch only leaves them blank.
 
 Companion to okx_swap_screener.py, originally built to mirror the "MA100
 Demarcation Line [MTF]" Pine Script indicator's multi-timeframe check.
@@ -29,9 +21,8 @@ mirrors Above_D1.)
 
 Final filter set (all required, ANDed together, all ON by default)
 ---------------------------------------------------------------------
-  1. Above_All_TF    - price above the MA100 demarcation line on D1, H4
-                        AND H1 (Above_D1 & Above_H4 & Above_H1, v1.2). D1
-                        is checked first - AOTS_D1
+  1. Above_All_TF    - price above the MA100 demarcation line on D1
+                        (Above_D1). This is the sole trend gate - AOTS_D1
                         is no longer part of the required filter set, see
                         "AOTS info columns" below.
   2. RSI_D1 > 50      - daily RSI14 strictly above --min-rsi (default 50)
@@ -319,16 +310,13 @@ HISTORY_CANDLES_ENDPOINT = "/api/v5/market/history-candles"
 # dropped - Above_All_TF is now just Above_D1.)
 TIMEFRAMES: dict[str, str] = {
     "D1": "1D",
-    "H4": "4H",   # v1.2: hard filter
-    "H1": "1H",   # v1.2: hard filter
 }
-# Lower timeframes that must ALSO be above their MA100 (D1 is always checked).
-# Derived from TIMEFRAMES so removing an entry there drops it from the gate.
-INTRADAY_GATE_TFS: list[str] = [tf for tf in TIMEFRAMES if tf != "D1"]
 
-# v1.4: lower timeframes recorded for the dashboard's optional filters (not part
-# of the gate). Only checked for tokens that already pass D1+H4+H1, to save calls.
+# v1.5: extra timeframes recorded for the dashboard only (NOT part of the gate,
+# NOT used by the Discord digest). Checked only for tokens above their D1 MA100.
 INFO_TIMEFRAMES: dict[str, str] = {
+    "H4": "4H",
+    "H1": "1H",
     "M30": "30m",
     "M15": "15m",
     "M5": "5m",
@@ -902,35 +890,18 @@ def compute_row(
     rsi = wilder_rsi(df["close"]) if not df.empty else None
     row["RSI_D1"] = round(rsi, 2) if rsi is not None else None
 
-    # v1.2: H4/H1 MA100 checks. Only fetched when D1 already passes - a token
-    # below its D1 MA100 can't make the list anyway, so this saves ~2 API
-    # calls per failing token. Uses the light CANDLE_FETCH_LIMIT window (MA100
-    # + buffer), forming bar included unless --closed-only, matching the live
-    # TradingView table. Insufficient history counts as not-above.
-    all_above = bool(status["is_above"])
-    for tf in INTRADAY_GATE_TFS:
-        if all_above:
-            tf_df = get_candles(session, inst_id, TIMEFRAMES[tf], closed_only=closed_only)
-            tf_status = compute_tf_status(tf_df, ma_type=ma_type)
-        else:
-            tf_status = {"close": None, "ma100": None, "is_above": None,
-                         "ma_alignment": "Not Checked (below D1 MA100)", "is_aots": None}
-        row[f"Close_{tf}"] = tf_status["close"]
-        row[f"MA100_{tf}"] = round(tf_status["ma100"], 8) if tf_status["ma100"] is not None else None
-        row[f"Above_{tf}"] = tf_status["is_above"]
-        row[f"MA_Alignment_{tf}"] = tf_status["ma_alignment"]
-        row[f"AOTS_{tf}"] = tf_status["is_aots"]
-        all_above = all_above and bool(tf_status["is_above"])
-
     # insufficient data can't be confirmed True, so it counts as False here.
-    row["Above_All_TF"] = all_above
+    row["Above_All_TF"] = bool(status["is_above"])
 
-    # v1.4: informational M30/M15/M5 MA100 checks (not part of Above_All_TF)
+    # v1.5: dashboard-only MA100 checks on lower timeframes. Fail-safe - a failed
+    # fetch only blanks these columns and never drops the token from the digest.
     for tf, bar in INFO_TIMEFRAMES.items():
-        if all_above:
-            tf_status = compute_tf_status(get_candles(session, inst_id, bar, closed_only=closed_only), ma_type=ma_type)
-        else:
-            tf_status = {"close": None, "ma100": None, "is_above": None}
+        tf_status = {"close": None, "ma100": None, "is_above": None}
+        if row["Above_All_TF"]:
+            try:
+                tf_status = compute_tf_status(get_candles(session, inst_id, bar, closed_only=closed_only), ma_type=ma_type)
+            except Exception as exc:  # noqa: BLE001 - informational columns only
+                log.warning("%s: %s MA100 check skipped (%s)", inst_id, tf, exc)
         row[f"Close_{tf}"] = tf_status["close"]
         row[f"MA100_{tf}"] = round(tf_status["ma100"], 8) if tf_status["ma100"] is not None else None
         row[f"Above_{tf}"] = tf_status["is_above"]
@@ -1195,7 +1166,6 @@ def build_discord_digest(
         "BOS = Break of Structure (52WH/6MH/3MH = the 52-week/6-month/3-month high was broken)\n"
         "Approaching 52W/6M/3M High = hasn't broken a high yet, but is closing in on that window's level next\n"
         f"RSI Swing High Value = highest daily RSI14 touched in the last {swing_high_lookback_days} days\n"
-        f"Every token listed is above its MA100 on {', '.join(TIMEFRAMES.keys())}\n"
         "Each section is sub-grouped by network (Solana / Ethereum / Other Networks), sorted by % then RSI "
         "within it - network is a best-effort lookup, not authoritative (see NETWORK_MAP in the script)"
     )
