@@ -3,9 +3,7 @@ name: OKX Screener
 on:
   schedule:
     # Every 4 hours at :10 -> 8:10 AM, 12:10 PM, 4:10 PM, 8:10 PM, 12:10 AM, 4:10 AM (Manila time).
-    # For hourly instead, change to: "10 * * * *"
-    # - cron: "10 */4 * * *"
-    - cron: "10 * * * *"
+    - cron: "10 */4 * * *"
   workflow_dispatch:   # adds the manual "Run workflow" button
 
 permissions:
@@ -18,7 +16,7 @@ concurrency:
 jobs:
   screener:
     runs-on: ubuntu-latest
-    timeout-minutes: 45   # deep-history scan of ~485 pairs can take 10-20 min under OKX's rate limit
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
 
@@ -33,6 +31,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_SCREENER }}
           DISCORD_MENTION: ${{ vars.DISCORD_MENTION }}
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}   # optional; leave unset if you don't have one
         run: python okx_screener.py --output-dir data --ath-max-history-pages 1
 
       - name: Commit refreshed data
