@@ -1,6 +1,21 @@
 """
-OKX MA100 Demarcation Line Screener - v1.5
+OKX MA100 Demarcation Line Screener - v1.6
 ===========================================
+
+v1.6 CHANGE (vs v1.5): two extra filters on the watchlist / Discord digest,
+both ON by default:
+  * Crypto only - drops tokenized stocks (and other non-crypto: commodities,
+    forex, bonds) using OKX's own instCategory field on /public/instruments
+    (1 = Crypto, 3 = Stocks, 4 = Commodities, 5 = Forex, 6 = Bonds). When OKX
+    leaves the category blank, the hand-maintained STOCK_TICKERS list decides.
+    Pass --include-stocks to turn this off.
+  * Market cap >= --min-market-cap (default $200M), from CoinGecko's free
+    /coins/markets endpoint (top 1,000 coins by market cap, matched to OKX by
+    symbol - when two coins share a symbol the larger one is used). Pass
+    --min-market-cap 0 to turn it off. If CoinGecko can't be reached, the
+    market-cap filter is skipped for that run (the digest footer says so)
+    rather than failing the run or emptying the watchlist.
+New CSV columns: InstCategory, Is_Crypto, MarketCap_USD, MarketCap_Rank.
 
 v1.5 CHANGE (vs v1.1): the watchlist and Discord digest are EXACTLY as v1.1
 (D1 MA100 is the only trend gate). Additionally records the MA100 demarcation
@@ -322,6 +337,13 @@ INFO_TIMEFRAMES: dict[str, str] = {
     "M5": "5m",
 }
 
+# v1.6: universe filters (watchlist + Discord digest)
+MIN_MARKET_CAP_DEFAULT = 200_000_000.0
+COINGECKO_MARKETS_URL = "https://api.coingecko.com/api/v3/coins/markets"
+COINGECKO_PAGES = 4                     # 4 x 250 = top 1,000 coins by market cap
+NON_CRYPTO_CATEGORIES = {"3", "4", "5", "6"}   # OKX instCategory: Stocks, Commodities, Forex, Bonds
+_INST_CATEGORY: dict[str, str] = {}     # instId -> OKX instCategory, filled by get_live_usdt_swap_instruments()
+
 MA_LEN = 100                 # matches the indicator's "MA Length" input
 MA_TYPE_DEFAULT = "SMA"      # matches the indicator's default "MA Type" input
 CANDLE_FETCH_LIMIT = 110     # MA_LEN + a small buffer; one call covers it (cap is 300)
@@ -460,6 +482,8 @@ def get_live_usdt_swap_instruments(session: ThrottledSession) -> list[str]:
         for row in rows
         if row.get("settleCcy") == "USDT" and row.get("state") == "live"
     ]
+    for row in rows:   # v1.6: remember OKX's asset category for the crypto-only filter
+        _INST_CATEGORY[row.get("instId", "")] = str(row.get("instCategory") or "")
     log.info("Found %d live USDT-margined SWAP instruments", len(inst_ids))
     return sorted(inst_ids)
 
@@ -952,6 +976,9 @@ STOCK_TICKERS: set[str] = {
     "NVDA", "META", "MSTR", "AMD", "CRWD", "HPE", "CSCO", "MRVL", "ISRG",
     "A", "SMH", "QQQ", "ASML", "TQQQ", "AMAT", "TWLO", "PROS", "CIEN",
     "EWZ", "GME", "OPENAI", "ALAB", "GEV", "SPCX",
+    # v1.6 additions - backup only; OKX's instCategory ("3" = Stocks) is the primary check
+    "MSFT", "PLTR", "AAPL", "TSLA", "GOOGL", "GOOG", "AMZN", "NFLX", "COIN", "HOOD", "INTC",
+    "AVGO", "TSM", "ORCL", "SPY", "IWM", "DIA", "UBER", "SHOP", "BABA", "SNOW", "SMCI", "ARM", "MU", "CRCL",
 }
 
 
@@ -1118,12 +1145,41 @@ MAX_DIGEST_PAGES = 5   # safety cap on how many separate Discord messages one
                         # rather than sending an unbounded number of messages
 
 
+def _fmt_usd_short(v: float) -> str:
+    return f"${v / 1e9:g}B" if v >= 1e9 else f"${v / 1e6:g}M"
+
+
+def _universe_note(min_market_cap: float, mcap_applied: bool, include_stocks: bool) -> str:
+    """Footer fragment describing the v1.6 universe filters."""
+    parts = []
+    if min_market_cap > 0:
+        parts.append(f"Mcap > {_fmt_usd_short(min_market_cap)}" if mcap_applied
+                     else "Mcap filter skipped (data unavailable)")
+    if not include_stocks:
+        parts.append("crypto only")
+    return ", ".join(parts)
+
+
+def _filters_line(min_rsi: float, min_swing_rsi: float, swing_days: int,
+                  min_market_cap: float, mcap_applied: bool, include_stocks: bool) -> str:
+    """First line of the Notes field: the filters every listed token passed."""
+    parts = ["Above MA100 on D1", f"RSI D1 > {min_rsi:g}", f"RSI last touch ({swing_days}D) >= {min_swing_rsi:g}"]
+    if min_market_cap > 0:
+        parts.append(f"Market cap > {_fmt_usd_short(min_market_cap)}" if mcap_applied
+                     else "Market cap filter skipped this run (data unavailable)")
+    if not include_stocks:
+        parts.append("crypto only (no tokenized stocks)")
+    return "Filtered: " + " · ".join(parts)
+
+
 def build_discord_digest(
     above_all: pd.DataFrame,
     run_date: str,
     total_scanned: int,
     min_rsi: float,
     swing_high_lookback_days: int = SWING_HIGH_LOOKBACK_DAYS,
+    universe_note: str = "",
+    filters_line: str = "",
 ) -> list[dict]:
     """Builds the Discord digest as a LIST of one or more embeds (one per
     Discord message) in the WATCHLISTS layout, grouped into up to 6
@@ -1159,10 +1215,12 @@ def build_discord_digest(
     base_title = f"OKX MA100 Demarcation Screener - {run_date} UTC"
     footer_text = (
         f"{total_scanned} instruments scanned - Above MA100 on {tf_list}, "
-        f"RSI {RSI_FILTER_TF} > {min_rsi:g} | ⚠️ Trade at Your Own Risk"
+        f"RSI {RSI_FILTER_TF} > {min_rsi:g}" + (f", {universe_note}" if universe_note else "")
+        + " | ⚠️ Trade at Your Own Risk"
     )
     notes_name = "\U0001F4DD Notes"
     notes_base_value = (
+        (filters_line + "\n" if filters_line else "") +
         "BOS = Break of Structure (52WH/6MH/3MH = the 52-week/6-month/3-month high was broken)\n"
         "Approaching 52W/6M/3M High = hasn't broken a high yet, but is closing in on that window's level next\n"
         f"RSI Swing High Value = highest daily RSI14 touched in the last {swing_high_lookback_days} days\n"
@@ -1288,6 +1346,56 @@ def post_to_discord(webhook_url: str, embed: dict, mention: str | None = None) -
 # ============================================================================
 
 
+def get_market_caps(pages: int = COINGECKO_PAGES) -> tuple[dict[str, tuple[float, int]], bool]:
+    """Symbol -> (market cap USD, rank) from CoinGecko's free /coins/markets
+    (no API key). Returns (mapping, ok). When two coins share a ticker the
+    larger market cap wins. Never raises: on failure returns ({}, False) so the
+    caller can skip the market-cap filter instead of failing the run."""
+    caps: dict[str, tuple[float, int]] = {}
+    http = requests.Session()
+    http.headers.update({"Accept": "application/json", "User-Agent": "okx-screener/1.6"})
+    api_key = os.environ.get("COINGECKO_API_KEY")   # optional free "Demo" key - fewer rate limits on shared CI runners
+    if api_key:
+        http.headers["x-cg-demo-api-key"] = api_key
+    for page in range(1, pages + 1):
+        data = None
+        for attempt in range(1, 4):
+            try:
+                resp = http.get(COINGECKO_MARKETS_URL, params={
+                    "vs_currency": "usd", "order": "market_cap_desc", "per_page": 250, "page": page,
+                }, timeout=20)
+                if resp.status_code == 429:
+                    time.sleep(15 * attempt)
+                    continue
+                resp.raise_for_status()
+                data = resp.json()
+                break
+            except Exception as exc:  # noqa: BLE001
+                log.warning("CoinGecko page %d attempt %d failed: %s", page, attempt, exc)
+                time.sleep(5 * attempt)
+        if data is None:
+            if page == 1:
+                return {}, False
+            break   # partial data (top N pages) is still fine for a $200M threshold
+        for coin in data:
+            sym = str(coin.get("symbol") or "").upper()
+            mcap = coin.get("market_cap") or 0
+            rank = coin.get("market_cap_rank") or 0
+            if sym and (sym not in caps or mcap > caps[sym][0]):
+                caps[sym] = (float(mcap), int(rank))
+        time.sleep(2.5)   # stay well inside the free-tier rate limit
+    log.info("CoinGecko market caps loaded for %d symbols", len(caps))
+    return caps, bool(caps)
+
+
+def is_crypto_instrument(inst_id: str, base_ccy: str) -> bool:
+    """OKX instCategory decides (1 = crypto); blank category falls back to STOCK_TICKERS."""
+    cat = _INST_CATEGORY.get(inst_id, "")
+    if cat:
+        return cat not in NON_CRYPTO_CATEGORIES
+    return base_ccy not in STOCK_TICKERS
+
+
 def run_screener(
     output_dir: Path,
     ma_type: str = MA_TYPE_DEFAULT,
@@ -1302,6 +1410,8 @@ def run_screener(
     avg_vol_lookback_days: int = AVG_VOL_LOOKBACK_DAYS_DEFAULT,
     discord_webhook: str | None = None,
     discord_mention: str | None = None,
+    min_market_cap: float = MIN_MARKET_CAP_DEFAULT,
+    include_stocks: bool = False,
 ) -> pd.DataFrame:
     output_dir.mkdir(parents=True, exist_ok=True)
     session = ThrottledSession()
@@ -1339,6 +1449,13 @@ def run_screener(
     volumes = get_24h_usdt_volume(session)
     result["Vol24h_USDT"] = result["InstId"].map(volumes).fillna(0.0)
 
+    # v1.6: universe filters - crypto only (OKX instCategory) + market cap (CoinGecko)
+    result["InstCategory"] = result["InstId"].map(lambda i: _INST_CATEGORY.get(i, ""))
+    result["Is_Crypto"] = [is_crypto_instrument(i, b) for i, b in zip(result["InstId"], result["BaseCcy"])]
+    caps, caps_ok = get_market_caps() if min_market_cap > 0 else ({}, False)
+    result["MarketCap_USD"] = result["BaseCcy"].map(lambda b: caps.get(b, (None, None))[0])
+    result["MarketCap_Rank"] = result["BaseCcy"].map(lambda b: caps.get(b, (None, None))[1])
+
     run_date = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
 
     dated_path = output_dir / f"okx_demarcation_scan_{run_date}.csv"
@@ -1353,10 +1470,17 @@ def run_screener(
         (result["Above_All_TF"] == True)  # noqa: E712
         & (result[avg_vol_col].fillna(0.0) >= min_liquidity_usd)
         & (result[rsi_col] > min_rsi)
-        & (result[swing_high_col] > min_swing_high_rsi)
+        & (result[swing_high_col] >= min_swing_high_rsi)
     )
     if require_near_high:
         mask &= (result["Near_Any_High"] == True)  # noqa: E712
+    if not include_stocks:
+        mask &= (result["Is_Crypto"] == True)  # noqa: E712
+    mcap_applied = min_market_cap > 0 and caps_ok
+    if mcap_applied:
+        mask &= (result["MarketCap_USD"].fillna(0.0) >= min_market_cap)
+    elif min_market_cap > 0:
+        log.warning("Market cap data unavailable - market-cap filter skipped this run")
     above_all = result[mask].sort_values(avg_vol_col, ascending=False).reset_index(drop=True)
     above_all_path = output_dir / "okx_demarcation_above_all_latest.csv"
     above_all.to_csv(above_all_path, index=False)
@@ -1381,6 +1505,9 @@ def run_screener(
             embeds = build_discord_digest(
                 above_all, run_date, total_scanned=len(result), min_rsi=min_rsi,
                 swing_high_lookback_days=swing_high_lookback_days,
+                universe_note=_universe_note(min_market_cap, mcap_applied, include_stocks),
+                filters_line=_filters_line(min_rsi, min_swing_high_rsi, swing_high_lookback_days,
+                                           min_market_cap, mcap_applied, include_stocks),
             )
             for url in webhook_urls:
                 try:
@@ -1497,6 +1624,17 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--min-market-cap",
+        type=float,
+        default=MIN_MARKET_CAP_DEFAULT,
+        help=f"Only list coins with at least this market cap in USD, from CoinGecko (default {MIN_MARKET_CAP_DEFAULT:,.0f}; 0 = off).",
+    )
+    parser.add_argument(
+        "--include-stocks",
+        action="store_true",
+        help="Also list tokenized stocks and other non-crypto perpetuals (excluded by default).",
+    )
+    parser.add_argument(
         "--discord-webhook",
         default=os.environ.get("DISCORD_WEBHOOK_URL"),
         help=(
@@ -1525,6 +1663,8 @@ def main() -> None:
         min_swing_high_rsi=args.min_swing_high_rsi,
         discord_webhook=args.discord_webhook,
         discord_mention=args.discord_mention,
+        min_market_cap=args.min_market_cap,
+        include_stocks=args.include_stocks,
     )
 
     if args.interval_minutes:

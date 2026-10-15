@@ -449,6 +449,11 @@ tr.sel td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .mtp .mantra { border-radius: 12px; }
 .mtp .wisdom-quote { border-left-color: var(--accent); color: var(--text-primary); }
 .mtp .banner { top: 52px; }
+.mtp .wh-box { margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--surface-2); }
+.mtp .wh-box summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+.mtp .wh-box summary .tag { font-size: 10px; padding: 2px 8px; border-radius: 999px; margin-left: 6px; }
+.mtp .wh-box[open] summary { margin-bottom: 6px; }
+.mtp #sendPlanStatus:empty, .mtp #sendReviewStatus:empty, .mtp #whStatus:empty { display: none; }
 /* screener hints inside the checklist */
 .scr-hint { margin: 8px 0 4px; padding: 8px 10px; border-radius: 8px; font-size: 12.5px; line-height: 1.5;
   background: color-mix(in srgb, var(--accent) 9%, var(--surface-1)); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); color: var(--text-secondary); }
@@ -506,10 +511,14 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
 
   <section class="card filters" aria-label="Filters">
     <label>Min RSI D1 <input type="number" id="fRsi" step="1" min="0" max="100"></label>
-    <label>Min swing-high RSI <input type="number" id="fSwing" step="1" min="0" max="100"></label>
+    <label>Min RSI last touch <input type="number" id="fSwing" step="1" min="0" max="100"></label>
     <label>Min avg vol (USDT) <select id="fLiq">
       <option value="0">Any</option><option value="100000">$100K</option><option value="500000">$500K</option>
       <option value="1000000">$1M</option><option value="5000000">$5M</option><option value="20000000">$20M</option>
+    </select></label>
+    <label>Min market cap <select id="fMcap">
+      <option value="0">Any</option><option value="100000000">$100M</option><option value="200000000">$200M</option>
+      <option value="500000000">$500M</option><option value="1000000000">$1B</option><option value="10000000000">$10B</option>
     </select></label>
     <label>Near high within <input type="number" id="fNear" step="1" min="0" max="100">%</label>
     <span class="sep" aria-hidden="true"></span>
@@ -946,8 +955,20 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
     <p class="note">Auto-generated from everything you've filled in above. Review and edit the preview below before copying — it's a starting draft, not locked text.</p>
     <textarea id="tradePlanPreview" style="min-height:280px;font-family:Consolas,Menlo,monospace;font-size:0.8rem;"></textarea>
     <button class="primary" id="copyTradePlanBtn" onclick="copyTradePlan()">Copy Trade Plan</button>
+    <button class="primary" id="sendTradePlanBtn" onclick="sendTradePlanToDiscord()">Send to my Discord</button>
     <button class="secondary" onclick="refreshTradePlan()">Refresh Preview</button>
-    <p class="note" id="copyDisabledNote" style="display:none;margin-top:6px;">Copy is disabled until every stage passes (or the kill switch clears) — this isn't a validated trade plan yet.</p>
+    <p class="note" id="copyDisabledNote" style="display:none;margin-top:6px;">Copy and Send are disabled until every stage passes (or the kill switch clears) — this isn't a validated trade plan yet.</p>
+    <p class="note" id="sendPlanStatus" role="status" style="margin-top:6px;"></p>
+    <details class="wh-box" id="whBox">
+      <summary>Personal Discord webhook <span class="tag info" id="whState">NOT SET</span></summary>
+      <p class="note">Paste a webhook from <b>your personal</b> Discord channel (Edit Channel → Integrations → Webhooks → Copy Webhook URL).
+        It's saved <b>only in this browser</b> — never in the website, the GitHub repo or the Back up file — so nobody visiting the site can see or use it.</p>
+      <div class="field wide"><label>Webhook URL</label><input type="password" id="whUrl" placeholder="https://discord.com/api/webhooks/…" autocomplete="off" spellcheck="false" style="max-width:100%"></div>
+      <button class="primary" type="button" onclick="saveWebhook()">Save</button>
+      <button class="secondary" type="button" onclick="testWebhook()">Send test message</button>
+      <button class="secondary" type="button" onclick="forgetWebhook()">Forget</button>
+      <p class="note" id="whStatus" role="status"></p>
+    </details>
   </div>
 
   <!-- CSV LOG -->
@@ -1001,7 +1022,9 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
       <textarea id="rvLesson" placeholder="What I'd repeat, or do differently..."></textarea>
     </div>
     <button class="primary" onclick="copyReview()">Copy Summary to Clipboard</button>
+    <button class="primary" onclick="sendReviewToDiscord()">Send to my Discord</button>
     <button class="secondary" onclick="clearReview()">Clear</button>
+    <p class="note" id="sendReviewStatus" role="status" style="margin-top:6px;"></p>
     <div class="privacy-note">This section is intentionally not saved between visits.</div>
   </div>
 
@@ -1658,7 +1681,7 @@ function applyKillSwitchLock(locked) {
   ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7', 'stageExport'].forEach(id => {
     const container = document.getElementById(id);
     if (!container) return;
-    container.querySelectorAll('input, select, textarea, button').forEach(el => { el.disabled = locked; });
+    container.querySelectorAll('input, select, textarea, button').forEach(el => { if (!el.closest('.wh-box')) el.disabled = locked; });
     container.style.opacity = locked ? '0.5' : '1';
   });
 }
@@ -1988,6 +2011,8 @@ function evaluate() {
   const copyNote = document.getElementById('copyDisabledNote');
   const canCopy = allPass && !killActive;
   copyBtn.disabled = !canCopy;
+  const sendBtn = document.getElementById('sendTradePlanBtn');
+  if (sendBtn) { sendBtn.disabled = !canCopy; sendBtn.title = canCopy ? '' : 'Disabled until every stage passes (or the kill switch clears).'; }
   copyBtn.title = canCopy ? '' : 'Disabled until every stage passes (or the kill switch clears).';
   copyNote.style.display = canCopy ? 'none' : 'block';
 
@@ -2113,10 +2138,84 @@ function refreshTradePlan() {
 }
 
 function copyTradePlan() {
-  refreshTradePlan();
   const text = document.getElementById('tradePlanPreview').value;
   navigator.clipboard.writeText(text).then(() => alert('Trade plan copied \u2014 paste it into Discord.'));
 }
+
+
+// ---------- Personal Discord (webhook kept only in this browser) ----------
+const WH_KEY = 'personalDiscordWebhook';
+const WH_RE = /^https:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/;
+function getWebhook() { try { return localStorage.getItem(WH_KEY) || ''; } catch (e) { return ''; } }
+function setStatus(id, msg, ok) {
+  const el = document.getElementById(id); if (!el) return;
+  el.textContent = msg; el.style.color = ok === false ? 'var(--critical-text)' : ok ? 'var(--good-text)' : '';
+}
+function syncWebhookUi() {
+  const has = !!getWebhook(), tag = document.getElementById('whState');
+  if (tag) { tag.textContent = has ? 'SAVED' : 'NOT SET'; tag.className = 'tag ' + (has ? 'pass' : 'info'); }
+}
+function saveWebhook() {
+  const v = (document.getElementById('whUrl').value || '').trim();
+  if (!WH_RE.test(v)) { setStatus('whStatus', "That doesn't look like a Discord webhook URL (https://discord.com/api/webhooks/…).", false); return false; }
+  try { localStorage.setItem(WH_KEY, v); } catch (e) { setStatus('whStatus', 'Could not save — browser storage is blocked.', false); return false; }
+  document.getElementById('whUrl').value = '';
+  setStatus('whStatus', 'Saved in this browser.', true); syncWebhookUi(); return true;
+}
+function forgetWebhook() { try { localStorage.removeItem(WH_KEY); } catch (e) {} setStatus('whStatus', 'Removed from this browser.', true); syncWebhookUi(); }
+function chunkText(text, size) {   // split on line breaks so the code blocks stay readable
+  const out = []; let cur = '';
+  for (const line of text.split('\n')) {
+    if (cur && (cur + '\n' + line).length > size) { out.push(cur); cur = ''; }
+    cur = cur ? cur + '\n' + line : line;
+    while (cur.length > size) { out.push(cur.slice(0, size)); cur = cur.slice(size); }
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+const FENCE = '`'.repeat(3);
+async function postToDiscord(title, body, color) {
+  const url = getWebhook();
+  if (!url) throw new Error('No personal webhook saved yet — open "Personal Discord webhook" below and paste one.');
+  const parts = chunkText(body, 3900);
+  for (let i = 0; i < parts.length; i++) {
+    const payload = { username: 'My Trading Partner', allowed_mentions: { parse: [] },
+      embeds: [{ title: parts.length > 1 ? `${title} (${i + 1}/${parts.length})` : title,
+        description: FENCE + '\n' + parts[i].split(FENCE).join("'''") + '\n' + FENCE, color, timestamp: new Date().toISOString() }] };
+    const r = await fetch(url + '?wait=true', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (r.status === 429) { const j = await r.json().catch(() => ({})); await new Promise(res => setTimeout(res, ((j.retry_after || 1) * 1000) + 200)); i--; continue; }
+    if (!r.ok) throw new Error(r.status === 404 || r.status === 401 ? 'Discord says this webhook no longer exists — paste a new one.' : `Discord returned HTTP ${r.status}.`);
+  }
+}
+async function sendTradePlanToDiscord() {
+  const btn = document.getElementById('sendTradePlanBtn');
+  if (btn.disabled) return;
+  const text = document.getElementById('tradePlanPreview').value.trim();
+  if (!text) { setStatus('sendPlanStatus', 'The trade plan is empty.', false); return; }
+  const token = (document.getElementById('tokenName').value || 'Trade').trim().toUpperCase();
+  btn.disabled = true; setStatus('sendPlanStatus', 'Sending…');
+  try { await postToDiscord(`📝 Trade plan — ${token}`, text, 0x3987e5); setStatus('sendPlanStatus', 'Sent to your Discord channel.', true); }
+  catch (e) { setStatus('sendPlanStatus', e.message || 'Could not reach Discord.', false); }
+  finally { btn.disabled = document.getElementById('copyTradePlanBtn').disabled; }   // same gate as Copy
+}
+async function sendReviewToDiscord() {
+  const v = id => document.getElementById(id).value || '-';
+  const token = (document.getElementById('tokenName').value || '').trim().toUpperCase();
+  const text = ['Entry: ' + v('rvEntry'), 'Exit: ' + v('rvExit'), 'Time held: ' + v('rvTime'), 'Reason for exit: ' + v('rvReason'),
+    'Followed plan: ' + (document.getElementById('rvFollowedPlan').checked ? 'Yes' : 'No'), 'Lesson: ' + v('rvLesson')].join('\n');
+  setStatus('sendReviewStatus', 'Sending…');
+  try { await postToDiscord(`🔁 Post-trade review${token ? ' — ' + token : ''}`, text, 0x9085e9); setStatus('sendReviewStatus', 'Sent to your Discord channel.', true); }
+  catch (e) { setStatus('sendReviewStatus', e.message || 'Could not reach Discord.', false); }
+}
+async function testWebhook() {
+  const typed = (document.getElementById('whUrl').value || '').trim();
+  if (typed && !saveWebhook()) return;
+  if (!getWebhook()) { setStatus('whStatus', 'Paste your webhook URL first.', false); return; }
+  setStatus('whStatus', 'Sending test…');
+  try { await postToDiscord('✅ Trading Partner connected', 'Trade plans and post-trade reviews from the checklist will arrive here.', 0x0ca30c); setStatus('whStatus', 'Test sent — check your channel.', true); }
+  catch (e) { setStatus('whStatus', e.message || 'Could not reach Discord.', false); }
+}
+syncWebhookUi();
 
 // ---------- CSV Log ----------
 let logFileHandle = null;
@@ -2307,6 +2406,7 @@ function resetChecklist() {
 }
 
 document.querySelectorAll('.mtp input, .mtp select, .mtp textarea').forEach(el => {
+  if (el.id === 'tradePlanPreview' || el.id === 'whUrl') return;   // the preview stays editable; the webhook field isn't checklist data
   el.addEventListener('input', evaluate);
   el.addEventListener('change', evaluate);
 });
@@ -2581,7 +2681,7 @@ const GATE_TFS = ["D1"];
 const TF_LABEL = { D1: "1D", H4: "4H", H1: "1H", M30: "30m", M15: "15m", M5: "5m" };
 
 /* Screener defaults — mirror the Python script's CLI defaults */
-const DEFAULTS = { rsi: 50, swing: 70, liq: 500000, near: 25 };
+const DEFAULTS = { rsi: 50, swing: 70, liq: 500000, near: 25, mcap: 200000000, cryptoOnly: true };
 const STALE_HOURS = 6; // schedule is every 4h; warn if data is older than this
 
 /* ---------- network buckets (mirrors NETWORK_MAP / simplify_network in the script) ---------- */
@@ -2598,7 +2698,8 @@ const NETWORK_MAP = {
   NMR:"Ethereum",BAND:"Ethereum",INIT:"Initia (Cosmos)"
 };
 const STOCK_TICKERS = new Set(["NVDA","META","MSTR","AMD","CRWD","HPE","CSCO","MRVL","ISRG","A","SMH","QQQ","ASML","TQQQ",
-  "AMAT","TWLO","PROS","CIEN","EWZ","GME","OPENAI","ALAB","GEV","SPCX"]);
+  "AMAT","TWLO","PROS","CIEN","EWZ","GME","OPENAI","ALAB","GEV","SPCX",
+  "MSFT","PLTR","AAPL","TSLA","GOOGL","GOOG","AMZN","NFLX","COIN","HOOD","INTC","AVGO","TSM","ORCL","SPY","IWM","DIA","UBER","SHOP","BABA","SNOW","SMCI","ARM","MU","CRCL"]);
 const ETH_L2 = new Set(["ARB","OP","WLD","MAGIC","ZK","OKB"]);
 const NET_ORDER = ["Solana","Ethereum","Other Networks"];
 const NET_COLOR = { "Solana":"var(--series-1)", "Ethereum":"var(--series-2)", "Other Networks":"var(--series-3)" };
@@ -2707,6 +2808,8 @@ function normalise(raw, cols) {
     pct52: num(r.Pct_From_52W_High), pct6: num(r.Pct_From_6M_High), pct3: num(r.Pct_From_3M_High), pctAth: num(r.Pct_From_ATH),
     partial52: bool(r.Partial_52W_History),
     rsi: num(r.RSI_D1),
+    mcap: num(r.MarketCap_USD),
+    isCrypto: (r.Is_Crypto != null && r.Is_Crypto !== "") ? bool(r.Is_Crypto) : !STOCK_TICKERS.has(r.BaseCcy || ""),
     swing: cols.swing ? num(r[cols.swing]) : null,
     avgVol: cols.avg ? num(r[cols.avg]) : null,
     vol24: num(r.Vol24h_USDT),
@@ -2721,8 +2824,10 @@ function screen(r) {
   const f = S.f;
   for (const tf of S.tfs) if (f["tf_" + tf] && !r.above[tf]) return false;
   if ((r.avgVol ?? 0) < f.liq) return false;
+  if (f.cryptoOnly && !r.isCrypto) return false;
+  if (S.hasMcap && f.mcap > 0 && (r.mcap ?? 0) < f.mcap) return false;
   if (!(r.rsi != null && r.rsi > f.rsi)) return false;
-  if (!(r.swing != null && r.swing > f.swing)) return false;
+  if (!(r.swing != null && r.swing >= f.swing)) return false;
   if (f.requireNear && !nearAny(r)) return false;
   return true;
 }
@@ -2740,32 +2845,38 @@ const pctFor = (r, col) => ({ Pct_From_52W_High: r.pct52, Pct_From_6M_High: r.pc
 function loadFilters() {
   let saved = {};
   try { saved = JSON.parse(storage("scr-filters") || "{}"); } catch (e) {}
-  if (saved.v !== 2) saved = {};   // filter defaults changed in v2 (only 1D is a screener filter)
-  S.f = { rsi: DEFAULTS.rsi, swing: DEFAULTS.swing, liq: DEFAULTS.liq, near: DEFAULTS.near, requireNear: true, ...saved };
+  if (saved.v !== 3) saved = {};   // defaults changed in v3 (market cap >= $200M, crypto only)
+  S.f = { ...DEFAULTS, requireNear: true, ...saved };
   for (const tf of S.tfs) if (S.f["tf_" + tf] === undefined) S.f["tf_" + tf] = GATE_TFS.includes(tf);
 }
 function syncFilterInputs() {
   $("fRsi").value = S.f.rsi; $("fSwing").value = S.f.swing; $("fNear").value = S.f.near;
   $("fLiq").value = String(S.f.liq);
+  $("fMcap").value = String(S.f.mcap);
+  if (![...$("fMcap").options].some(o => +o.value === S.f.mcap)) $("fMcap").value = "200000000";
+  $("fMcap").disabled = !S.hasMcap;
+  $("fMcap").title = S.hasMcap ? "Market cap from CoinGecko, as of the last screener run" : "No market cap in this data yet (needs screener v1.6, or CoinGecko was unavailable on the last run)";
   if (![...$("fLiq").options].some(o => +o.value === S.f.liq)) $("fLiq").value = "500000";
   $("tfToggles").innerHTML = `<span style="font-size:13px;color:var(--text-secondary)">Above MA100:</span>` + S.tfs.map(tf =>
     `<label title="${GATE_TFS.includes(tf) ? "Screener filter" : "Optional — snapshot as of the last run"}"><input type="checkbox" data-tf="${tf}" ${S.f["tf_" + tf] ? "checked" : ""}> ${TF_LABEL[tf]}</label>`
-  ).join("") + `<span class="sep" aria-hidden="true"></span>` + `<label><input type="checkbox" id="fReqNear" ${S.f.requireNear ? "checked" : ""}> Near a high</label>`;
+  ).join("") + `<span class="sep" aria-hidden="true"></span>` + `<label><input type="checkbox" id="fReqNear" ${S.f.requireNear ? "checked" : ""}> Near a high</label>`
+    + `<label title="Hide tokenized stocks and other non-crypto perpetuals"><input type="checkbox" id="fCrypto" ${S.f.cryptoOnly ? "checked" : ""}> Crypto only</label>`;
 }
 function bindFilters() {
   const upd = () => {
     S.f.rsi = +$("fRsi").value || 0; S.f.swing = +$("fSwing").value || 0;
-    S.f.near = +$("fNear").value || 0; S.f.liq = +$("fLiq").value || 0;
+    S.f.near = +$("fNear").value || 0; S.f.liq = +$("fLiq").value || 0; S.f.mcap = +$("fMcap").value || 0;
+    const cr = $("fCrypto"); if (cr) S.f.cryptoOnly = cr.checked;
     $("tfToggles").querySelectorAll("input[data-tf]").forEach(cb => S.f["tf_" + cb.dataset.tf] = cb.checked);
     const rn = $("fReqNear"); if (rn) S.f.requireNear = rn.checked;
-    storage("scr-filters", JSON.stringify({ ...S.f, v: 2 }));
+    storage("scr-filters", JSON.stringify({ ...S.f, v: 3 }));
     render();
   };
-  ["fRsi", "fSwing", "fNear", "fLiq"].forEach(id => $(id).addEventListener("input", upd));
+  ["fRsi", "fSwing", "fNear", "fLiq", "fMcap"].forEach(id => $(id).addEventListener("input", upd));
   $("tfToggles").addEventListener("change", upd);
   $("fReset").addEventListener("click", () => {
     S.f = { ...DEFAULTS, requireNear: true }; S.tfs.forEach(tf => S.f["tf_" + tf] = GATE_TFS.includes(tf));
-    storage("scr-filters", JSON.stringify({ ...S.f, v: 2 })); syncFilterInputs(); render();
+    storage("scr-filters", JSON.stringify({ ...S.f, v: 3 })); syncFilterInputs(); render();
   });
 }
 
@@ -2951,6 +3062,7 @@ function tipHtml(p) {
     <div class="row"><span>RSI last touch</span><span>${fmtRsi(p.swing)}</span></div>
     <div class="row"><span>RSI D1</span><span>${fmtRsi(p.rsi)}</span></div>
     <div class="row"><span>Vol 24h</span><span>${fmtVol(p.vol24)}</span></div>
+    <div class="row"><span>Market cap</span><span>${p.mcap != null ? fmtVol(p.mcap) : "–"}</span></div>
     ${tf ? `<div class="row"><span>MA100</span><span>${tf}</span></div>` : ""}`;
 }
 
@@ -3005,6 +3117,7 @@ const ALL_COLS = [
   { key: "base", label: "Token", get: r => r.base, fmt: r => `<a class="coin" href="${tvUrl(r.base)}" target="_blank" rel="noopener" title="Open ${esc(r.base)} on TradingView">${esc(r.base)}<span class="ext" aria-hidden="true">↗</span></a>` },
   { key: "swing", label: "RSI last touch", num: true, get: r => r.swing, fmt: r => fmtRsi(r.swing) },
   { key: "vol24", label: "Volume (24h)", num: true, get: r => r.vol24, fmt: r => fmtVol(r.vol24) },
+  { key: "mcap", label: "Market cap", num: true, get: r => r.mcap, fmt: r => r.isCrypto ? fmtVol(r.mcap) : `<span class="flag">stock</span>` },
   { key: "pctHigh", label: "% to high", num: true, get: r => nearestHigh(r).pct,
     fmt: r => { const h = nearestHigh(r); return `<span class="${h.pct >= 0 ? "pos" : ""}">${fmtPct(h.pct)}</span> <span class="flag">${h.label}</span>`; } },
   { key: "tier", label: "Tier", get: r => GROUPS.findIndex(g => g.key === tierOf(r)), fmt: r => { const g = GROUPS.find(x => x.key === tierOf(r)); return `<span style="color:var(--text-secondary)">${g.emoji} ${esc(g.label)}</span>`; } },
@@ -3305,6 +3418,7 @@ async function load() {
     if (!raw.length) throw new Error("The CSV has no rows yet.");
     S.cols = detectColumns(raw[0]); S.tfs = S.cols.tfs;
     S.rows = normalise(raw, S.cols).filter(r => r.inst);
+    S.hasMcap = S.rows.some(r => r.mcap != null);   // false for older CSVs or a run where CoinGecko was down
     loadFilters(); syncFilterInputs();
     const ts = S.rows.map(r => Date.parse(r.refreshed)).filter(Number.isFinite);
     const last = ts.length ? new Date(Math.max(...ts)) : null;
@@ -3315,9 +3429,11 @@ async function load() {
       $("dot").className = "status-dot" + (ageH > STALE_HOURS ? " stale" : "");
     } else $("refreshed").textContent = "Data loaded";
     $("notes").innerHTML = `
+      <b>Filtered:</b> Above MA100 on 1D · RSI D1 &gt; 50 · RSI last touch (${S.cols.swingDays ?? 22}D) ≥ 70 · Market cap &gt; $200M · Crypto only (no tokenized stocks) — the same defaults as the Discord digest.<br>
       <b>How to read this.</b> The watchlist uses the same rules as the Discord digest: price above its MA100 demarcation line on ${S.tfs.filter(t => GATE_TFS.includes(t)).map(t => TF_LABEL[t]).join(", ") || "1D"},
       RSI D1 above the minimum, swing-high RSI (highest daily RSI14 in the last ${S.cols.swingDays ?? 22} days) above the minimum,
-      ${S.cols.avgDays ?? 14}-day average volume above the liquidity floor, and price within the near-high band of a 3M/6M/52W/ATH level.
+      ${S.cols.avgDays ?? 14}-day average volume above the liquidity floor, price within the near-high band of a 3M/6M/52W/ATH level,
+      market cap above $200M (CoinGecko) and crypto only (tokenized stocks excluded, using OKX's own asset category).
       Changing the filters above only changes this page, not the screener itself.<br>
       <b>Interactions.</b> Click a tier bar, a quadrant or a network in the legend to filter every other visual (click again, use the chips, or press Esc to clear).
       Click a bubble or a token name to open it on TradingView.<br>
