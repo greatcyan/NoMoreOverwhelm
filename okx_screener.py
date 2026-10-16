@@ -386,7 +386,7 @@ RSI_TOUCH_LOOKBACK_DAYS = 21
 # just a different window - this is the one that's part of the required
 # filter set. --min-swing-high-rsi (default 70) filters on it.
 SWING_HIGH_LOOKBACK_DAYS = 22
-SWING_HIGH_RSI_MIN_DEFAULT = 70.0
+SWING_HIGH_RSI_MIN_DEFAULT = 69.0
 
 # "Near a high level" - current close is within this % of a 3M/6M/52W/ATH
 # prior-high level (either still below it by less than this margin, or has
