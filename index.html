@@ -2721,7 +2721,7 @@ const GROUPS = [
 ];
 
 /* ---------- state ---------- */
-const S = { rows: [], cols: {}, tfs: [], tab: "watch", sort: { key: "vol24", dir: -1 }, search: "", f: {},
+const S = { rows: [], cols: {}, tfs: [], tab: "watch", sort: { key: "val24", dir: -1 }, search: "", f: {},
   sel: { tier: null, net: null, quad: null } };   // cross-filter selections
 
 /* ---------- helpers ---------- */
@@ -2737,6 +2737,13 @@ function fmtVol(v) {
   if (v >= 1e6) return "$" + (v / 1e6).toFixed(1) + "M";
   if (v >= 1e3) return "$" + (v / 1e3).toFixed(1) + "K";
   return "$" + v.toFixed(0);
+}
+function fmtQty(v) {   // coin count (Vol24h is coins traded, not USD)
+  if (v == null) return "–";
+  if (v >= 1e9) return (v / 1e9).toFixed(1) + "B";
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + "M";
+  if (v >= 1e3) return (v / 1e3).toFixed(1) + "K";
+  return v.toFixed(0);
 }
 function fmtPrice(v) {
   if (v == null) return "–";
@@ -2812,7 +2819,9 @@ function normalise(raw, cols) {
     isCrypto: (r.Is_Crypto != null && r.Is_Crypto !== "") ? bool(r.Is_Crypto) : !STOCK_TICKERS.has(r.BaseCcy || ""),
     swing: cols.swing ? num(r[cols.swing]) : null,
     avgVol: cols.avg ? num(r[cols.avg]) : null,
-    vol24: num(r.Vol24h_USDT),
+    vol24: num(r.Vol24h_USDT),   // coins traded in 24h (OKX volCcy24h)
+    val24: (r.Value24h_USDT != null && r.Value24h_USDT !== "") ? num(r.Value24h_USDT)
+           : (num(r.Vol24h_USDT) != null && num(r.Close_D1) != null ? num(r.Vol24h_USDT) * num(r.Close_D1) : null),   // USDT traded in 24h
     passCsv: bool(r.Above_All_TF),
     refreshed: r.LastRefreshed || "",
     raw: r,
@@ -2968,7 +2977,7 @@ function renderBars(pass) {
 
 /* ---------- render: quadrant bubble chart ----------
    x = % from 52-week high (right of 0 = broke it), y = swing-high RSI,
-   bubble area = 24h volume, colour = network bucket (3 series max).
+   bubble area = 24h traded value (USDT), colour = network bucket (3 series max).
    Click a quadrant or legend item to filter; click a bubble to open its chart. */
 function renderScatter(pass) {
   const pts = pass.filter(r => r.pct52 != null && r.swing != null);
@@ -2980,11 +2989,11 @@ function renderScatter(pass) {
   let x0 = Math.floor(Math.min(-S.f.near, ...xs) / 5) * 5, x1 = Math.ceil(Math.max(5, ...xs) / 5) * 5;
   let y0 = Math.floor((Math.min(S.f.swing, ...ys) - 2) / 5) * 5, y1 = Math.min(100, Math.ceil((Math.max(QUAD_RSI + 5, ...ys) + 2) / 5) * 5);
   const sx = v => m.l + (v - x0) / (x1 - x0 || 1) * pw, sy = v => m.t + ph - (v - y0) / (y1 - y0 || 1) * ph;
-  const maxVol = Math.max(1, ...pts.map(p => p.vol24 ?? 0));
-  const rad = p => 4 + 16 * Math.sqrt((p.vol24 ?? 0) / maxVol);   // area ∝ volume
+  const maxVal = Math.max(1, ...pts.map(p => p.val24 ?? 0));
+  const rad = p => 4 + 16 * Math.sqrt((p.val24 ?? 0) / maxVal);   // area ∝ 24h traded value
   const qx = sx(Math.min(Math.max(0, x0), x1)), qy = sy(Math.min(Math.max(QUAD_RSI, y0), y1));
   const compact = W < 560;
-  let svg = `<svg width="100%" viewBox="0 0 ${W} ${H}" role="img" aria-label="Quadrant chart of swing-high RSI versus percent from 52-week high, bubble size is 24h volume">`;
+  let svg = `<svg width="100%" viewBox="0 0 ${W} ${H}" role="img" aria-label="Quadrant chart of swing-high RSI versus percent from 52-week high, bubble size is 24h traded value">`;
   // clickable quadrant regions (behind everything)
   const qrect = { TL: [m.l, m.t, qx - m.l, qy - m.t], TR: [qx, m.t, m.l + pw - qx, qy - m.t],
                   BL: [m.l, qy, qx - m.l, m.t + ph - qy], BR: [qx, qy, m.l + pw - qx, m.t + ph - qy] };
@@ -3018,14 +3027,14 @@ function renderScatter(pass) {
   svg += `<text x="${m.l + pw / 2}" y="${H - 4}" text-anchor="middle">% from 52-week high  →  broke it</text>`;
   svg += `<text transform="translate(11 ${m.t + ph / 2}) rotate(-90)" text-anchor="middle">RSI last touch (swing high)</text>`;
   const active = p => matchSel(p);   // all selections apply; non-matching bubbles fade
-  const order = [...pts].sort((a, b) => (active(a) - active(b)) || ((b.vol24 ?? 0) - (a.vol24 ?? 0)));   // faded first, then big→small
+  const order = [...pts].sort((a, b) => (active(a) - active(b)) || ((b.val24 ?? 0) - (a.val24 ?? 0)));   // faded first, then big→small
   order.forEach(p => {
     const on = active(p);
     svg += `<circle class="dot" data-inst="${esc(p.inst)}" cx="${sx(p.pct52)}" cy="${sy(p.swing)}" r="${rad(p)}" fill="${NET_COLOR[p.net]}"
       fill-opacity="${on ? 0.8 : 0.12}" stroke="var(--surface-1)" stroke-width="2" style="cursor:pointer"/>`;
   });
-  // direct labels: selected token + the 6 highest-volume active tokens
-  const labelled = [...pts].filter(active).sort((a, b) => (b.vol24 ?? 0) - (a.vol24 ?? 0)).slice(0, 6);
+  // direct labels: the 6 highest traded-value active tokens
+  const labelled = [...pts].filter(active).sort((a, b) => (b.val24 ?? 0) - (a.val24 ?? 0)).slice(0, 6);
   labelled.forEach(p => {
     const x = sx(p.pct52), r = rad(p), right = x > m.l + pw - 60;
     svg += `<text class="lbl" x="${right ? x - r - 4 : x + r + 4}" y="${sy(p.swing) + 4}" text-anchor="${right ? "end" : "start"}" style="pointer-events:none;font-weight:600">${esc(p.base)}</text>`;
@@ -3051,7 +3060,7 @@ function renderScatter(pass) {
   $("scatterLegend").innerHTML = NET_ORDER.map(n => {
     const on = S.sel.net === n, dim = S.sel.net && !on;
     return `<button type="button" data-net="${n}" class="${on ? "on" : dim ? "dim" : ""}" aria-pressed="${on}" title="${on ? "Clear filter" : "Filter by " + n}"><i style="background:${NET_COLOR[n]}"></i>${n} (${counts[n]})</button>`;
-  }).join("") + `<span style="margin-left:auto;color:var(--text-muted);align-self:center">Bubble size = 24h volume</span>`;
+  }).join("") + `<span style="margin-left:auto;color:var(--text-muted);align-self:center">Bubble size = 24h traded value</span>`;
   $("scatterLegend").querySelectorAll("button").forEach(b => b.addEventListener("click", () => toggleSel("net", b.dataset.net)));
 }
 function tipHtml(p) {
@@ -3061,7 +3070,8 @@ function tipHtml(p) {
     <div class="row"><span>% from 52WH</span><span>${fmtPct(p.pct52)}</span></div>
     <div class="row"><span>RSI last touch</span><span>${fmtRsi(p.swing)}</span></div>
     <div class="row"><span>RSI D1</span><span>${fmtRsi(p.rsi)}</span></div>
-    <div class="row"><span>Vol 24h</span><span>${fmtVol(p.vol24)}</span></div>
+    <div class="row"><span>Value 24h</span><span>${fmtVol(p.val24)}</span></div>
+    <div class="row"><span>Volume 24h</span><span>${fmtQty(p.vol24)} ${esc(p.base)}</span></div>
     <div class="row"><span>Market cap</span><span>${p.mcap != null ? fmtVol(p.mcap) : "–"}</span></div>
     ${tf ? `<div class="row"><span>MA100</span><span>${tf}</span></div>` : ""}`;
 }
@@ -3094,11 +3104,11 @@ function renderWatch(pass) {
         .sort((a, b) => ((pctFor(b, g.pct) ?? -1e9) - (pctFor(a, g.pct) ?? -1e9)) || ((b.swing ?? 0) - (a.swing ?? 0)));
       if (!nr.length) continue;
       html += `<div class="net"><div class="net-title"><i style="background:${NET_COLOR[n]}"></i>${n}</div><div class="tbl-wrap"><table>
-        <thead><tr><th>Token</th><th class="num">RSI last touch</th><th class="num">Volume (24h)</th><th class="num">% to ${esc(g.short)} high</th></tr></thead><tbody>`;
+        <thead><tr><th>Token</th><th class="num">RSI last touch</th><th class="num" title="USDT traded in the last 24h">Value (24h)</th><th class="num" title="Coins traded in the last 24h">Volume (24h)</th><th class="num">% to ${esc(g.short)} high</th></tr></thead><tbody>`;
       for (const r of nr) {
         const p = pctFor(r, g.pct);
         html += `<tr><td><a class="coin" href="${tvUrl(r.base)}" target="_blank" rel="noopener" title="Open ${esc(r.base)} on TradingView">${esc(r.base)}<span class="ext" aria-hidden="true">↗</span></a>${r.partial52 ? `<span class="flag" title="Less than 52 weeks of history">new</span>` : ""}${planBtn(r.base)}</td>
-          <td class="num">${fmtRsi(r.swing)}</td><td class="num">${fmtVol(r.vol24)}</td>
+          <td class="num">${fmtRsi(r.swing)}</td><td class="num">${fmtVol(r.val24)}</td><td class="num">${fmtQty(r.vol24)}</td>
           <td class="num ${p >= 0 ? "pos" : "neg"}">${fmtPct(p)}</td></tr>`;
       }
       html += `</tbody></table></div></div>`;
@@ -3116,7 +3126,8 @@ function nearestHigh(r) {   // % to the high that matters for this token's tier
 const ALL_COLS = [
   { key: "base", label: "Token", get: r => r.base, fmt: r => `<a class="coin" href="${tvUrl(r.base)}" target="_blank" rel="noopener" title="Open ${esc(r.base)} on TradingView">${esc(r.base)}<span class="ext" aria-hidden="true">↗</span></a>` },
   { key: "swing", label: "RSI last touch", num: true, get: r => r.swing, fmt: r => fmtRsi(r.swing) },
-  { key: "vol24", label: "Volume (24h)", num: true, get: r => r.vol24, fmt: r => fmtVol(r.vol24) },
+  { key: "val24", label: "Value (24h)", num: true, get: r => r.val24, fmt: r => fmtVol(r.val24) },
+  { key: "vol24", label: "Volume (24h, coins)", num: true, get: r => r.vol24, fmt: r => fmtQty(r.vol24) },
   { key: "mcap", label: "Market cap", num: true, get: r => r.mcap, fmt: r => r.isCrypto ? fmtVol(r.mcap) : `<span class="flag">stock</span>` },
   { key: "pctHigh", label: "% to high", num: true, get: r => nearestHigh(r).pct,
     fmt: r => { const h = nearestHigh(r); return `<span class="${h.pct >= 0 ? "pos" : ""}">${fmtPct(h.pct)}</span> <span class="flag">${h.label}</span>`; } },
@@ -3187,7 +3198,7 @@ function cardHtml(c) {
   if (r) {
     const g = GROUPS.find(x => x.key === tierOf(r)), hi = nearestHigh(r);
     meta = `${g.emoji} ${esc(g.label)} · ${screen(r) ? `<span class="pass">on watchlist</span>` : "off watchlist"}<br>
-      % to ${hi.label} high <b>${fmtPct(hi.pct)}</b> · RSI touch <b>${fmtRsi(r.swing)}</b> · Vol <b>${fmtVol(r.vol24)}</b>`;
+      % to ${hi.label} high <b>${fmtPct(hi.pct)}</b> · RSI touch <b>${fmtRsi(r.swing)}</b> · Value <b>${fmtVol(r.val24)}</b>`;
   }
   const opts = STAGES.map(st => `<option value="${st.key}" ${st.key === c.status ? "selected" : ""}>${st.label}</option>`).join("");
   const pr = c.priority || "Medium";
@@ -3288,7 +3299,7 @@ function showSection(sec) {
   document.querySelectorAll("#sitenav button").forEach(b => b.toggleAttribute("aria-current", b.dataset.sec === sec) || b.setAttribute("aria-current", b.dataset.sec === sec ? "page" : "false"));
   document.querySelectorAll("#sitenav button").forEach(b => { if (b.dataset.sec === sec) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   storage("scr-section", sec);
-  if (location.hash.slice(1) !== sec) history.replaceState(null, "", "#" + sec);
+  try { if (location.hash.slice(1) !== sec) history.replaceState(null, "", "#" + sec); } catch (e) { /* sandboxed previews block URL changes - safe to ignore */ }
   if (sec === "planner") renderPlanner();
   if (sec === "screener") render();
   if (sec === "checklist") renderChecklistHints();

@@ -1,5 +1,11 @@
 """
-OKX MA100 Demarcation Line Screener - v1.6
+OKX MA100 Demarcation Line Screener - v1.7
+
+v1.7 CHANGE (vs v1.6): one new CSV column for the webpage only -
+  Value24h_USDT = 24h traded value in USDT (OKX ticker volCcy24h, which for
+  perpetual swaps is the number of COINS traded, multiplied by the last
+  price). Taken from the same tickers call already made, so no extra
+  requests. Vol24h_USDT, the filters and the Discord digest are unchanged.
 ===========================================
 
 v1.6 CHANGE (vs v1.5): two extra filters on the watchlist / Discord digest,
@@ -486,6 +492,31 @@ def get_live_usdt_swap_instruments(session: ThrottledSession) -> list[str]:
         _INST_CATEGORY[row.get("instId", "")] = str(row.get("instCategory") or "")
     log.info("Found %d live USDT-margined SWAP instruments", len(inst_ids))
     return sorted(inst_ids)
+
+
+def get_24h_tickers(session: ThrottledSession) -> tuple[dict[str, float], dict[str, float]]:
+    """One tickers call for every SWAP instrument. Returns
+    (volumes, values):
+      volumes - volCcy24h exactly as before (Vol24h_USDT, Discord "Vol:")
+      values  - 24h traded value in USDT = volCcy24h (coins) x last price
+                (v1.7, webpage only - Value24h_USDT)"""
+    payload = session.get_json(TICKERS_ENDPOINT, {"instType": "SWAP"})
+    volumes: dict[str, float] = {}
+    values: dict[str, float] = {}
+    for row in payload.get("data", []):
+        inst_id = row.get("instId")
+        if not inst_id:
+            continue
+        try:
+            volumes[inst_id] = float(row.get("volCcy24h") or 0.0)
+        except (TypeError, ValueError):
+            volumes[inst_id] = 0.0
+        try:
+            last = float(row.get("last") or 0.0)
+        except (TypeError, ValueError):
+            last = 0.0
+        values[inst_id] = volumes[inst_id] * last
+    return volumes, values
 
 
 def get_24h_usdt_volume(session: ThrottledSession) -> dict[str, float]:
@@ -1446,8 +1477,10 @@ def run_screener(
     # display/context column (shown in the CSV and the Discord digest's
     # "Vol:" figure) but NOT used for the liquidity filter anymore (see
     # AvgVol_<N>D_USDT below, added in compute_row()/compute_avg_volume()).
-    volumes = get_24h_usdt_volume(session)
+    volumes, values = get_24h_tickers(session)
     result["Vol24h_USDT"] = result["InstId"].map(volumes).fillna(0.0)
+    # v1.7: 24h traded value in USDT (coins x last price) - webpage only
+    result["Value24h_USDT"] = result["InstId"].map(values).fillna(0.0)
 
     # v1.6: universe filters - crypto only (OKX instCategory) + market cap (CoinGecko)
     result["InstCategory"] = result["InstId"].map(lambda i: _INST_CATEGORY.get(i, ""))
