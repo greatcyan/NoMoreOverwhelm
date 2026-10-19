@@ -1,5 +1,10 @@
 """
-OKX MA100 Demarcation Line Screener - v1.7
+OKX MA100 Demarcation Line Screener - v1.8
+
+v1.8 CHANGE (vs v1.7): webpage-only columns AOTS_H4 / AOTS_H1 / AOTS_M30 /
+  AOTS_M15 / AOTS_M5 (MA20 > MA50 > MA100 on that timeframe), computed from
+  the candles already fetched for the lower-timeframe MA100 check - no extra
+  requests. Filters and the Discord digest are unchanged.
 
 v1.7 CHANGE (vs v1.6): one new CSV column for the webpage only -
   Value24h_USDT = 24h traded value in USDT (OKX ticker volCcy24h, which for
@@ -386,7 +391,7 @@ RSI_TOUCH_LOOKBACK_DAYS = 21
 # just a different window - this is the one that's part of the required
 # filter set. --min-swing-high-rsi (default 70) filters on it.
 SWING_HIGH_LOOKBACK_DAYS = 22
-SWING_HIGH_RSI_MIN_DEFAULT = 69.0
+SWING_HIGH_RSI_MIN_DEFAULT = 69.0   # Discord digest threshold (webpage has its own default, 70)
 
 # "Near a high level" - current close is within this % of a 3M/6M/52W/ATH
 # prior-high level (either still below it by less than this margin, or has
@@ -951,7 +956,7 @@ def compute_row(
     # v1.5: dashboard-only MA100 checks on lower timeframes. Fail-safe - a failed
     # fetch only blanks these columns and never drops the token from the digest.
     for tf, bar in INFO_TIMEFRAMES.items():
-        tf_status = {"close": None, "ma100": None, "is_above": None}
+        tf_status = {"close": None, "ma100": None, "is_above": None, "is_aots": None}
         if row["Above_All_TF"]:
             try:
                 tf_status = compute_tf_status(get_candles(session, inst_id, bar, closed_only=closed_only), ma_type=ma_type)
@@ -960,6 +965,7 @@ def compute_row(
         row[f"Close_{tf}"] = tf_status["close"]
         row[f"MA100_{tf}"] = round(tf_status["ma100"], 8) if tf_status["ma100"] is not None else None
         row[f"Above_{tf}"] = tf_status["is_above"]
+        row[f"AOTS_{tf}"] = tf_status["is_aots"]   # v1.8: webpage-only AOTS filter (MA20 > MA50 > MA100)
     row["AOTS_All_TF"] = bool(status["is_aots"])  # informational only
     row["LastRefreshed"] = dt.datetime.now(dt.timezone.utc).isoformat()
     return row

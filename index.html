@@ -524,6 +524,8 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
     <span class="sep" aria-hidden="true"></span>
     <span id="tfToggles" style="display:inline-flex;gap:14px;flex-wrap:wrap"></span>
     <button class="btn reset" id="fReset" type="button">Reset to screener defaults</button>
+    <span style="flex-basis:100%;height:0" aria-hidden="true"></span>
+    <span id="aotsToggles" style="display:inline-flex;gap:14px;flex-wrap:wrap;align-items:center"></span>
   </section>
 
   <div class="chips" id="chips" aria-live="polite"></div>
@@ -2801,6 +2803,7 @@ function detectColumns(sample) {
     swing: swing ? swing[0] : null, swingDays: swing ? +swing[1] : null,
     avg: avg ? avg[0] : null, avgDays: avg ? +avg[1] : null,
     tfs: ALL_TFS.filter(tf => keys.includes("Above_" + tf)),
+    aotsTfs: ALL_TFS.filter(tf => keys.includes("AOTS_" + tf)),
   };
 }
 
@@ -2811,6 +2814,7 @@ function normalise(raw, cols) {
     close: num(r.Close_D1),
     above: Object.fromEntries(cols.tfs.map(tf => [tf, r["Above_" + tf] === "" ? null : bool(r["Above_" + tf])])),
     aots: r.MA_Alignment_D1 || "",
+    aotsTf: Object.fromEntries((cols.aotsTfs || []).map(tf => [tf, r["AOTS_" + tf] === "" || r["AOTS_" + tf] == null ? null : bool(r["AOTS_" + tf])])),
     bos: r.BOS || "NONE",
     pct52: num(r.Pct_From_52W_High), pct6: num(r.Pct_From_6M_High), pct3: num(r.Pct_From_3M_High), pctAth: num(r.Pct_From_ATH),
     partial52: bool(r.Partial_52W_History),
@@ -2832,6 +2836,7 @@ function normalise(raw, cols) {
 function screen(r) {
   const f = S.f;
   for (const tf of S.tfs) if (f["tf_" + tf] && !r.above[tf]) return false;
+  for (const tf of (S.cols.aotsTfs || [])) if (f["aots_" + tf] && r.aotsTf[tf] !== true) return false;
   if ((r.avgVol ?? 0) < f.liq) return false;
   if (f.cryptoOnly && !r.isCrypto) return false;
   if (S.hasMcap && f.mcap > 0 && (r.mcap ?? 0) < f.mcap) return false;
@@ -2870,6 +2875,10 @@ function syncFilterInputs() {
     `<label title="${GATE_TFS.includes(tf) ? "Screener filter" : "Optional — snapshot as of the last run"}"><input type="checkbox" data-tf="${tf}" ${S.f["tf_" + tf] ? "checked" : ""}> ${TF_LABEL[tf]}</label>`
   ).join("") + `<span class="sep" aria-hidden="true"></span>` + `<label><input type="checkbox" id="fReqNear" ${S.f.requireNear ? "checked" : ""}> Near a high</label>`
     + `<label title="Hide tokenized stocks and other non-crypto perpetuals"><input type="checkbox" id="fCrypto" ${S.f.cryptoOnly ? "checked" : ""}> Crypto only</label>`;
+  const aTfs = S.cols.aotsTfs || [];
+  $("aotsToggles").innerHTML = `<span style="font-size:13px;color:var(--text-secondary)" title="AOTS = MA20 > MA50 > MA100 on that timeframe">AOTS:</span>` + aTfs.map(tf =>
+    `<label title="MA20 > MA50 > MA100 on ${TF_LABEL[tf]} (snapshot as of the last run)"><input type="checkbox" data-aots="${tf}" ${S.f["aots_" + tf] ? "checked" : ""}> ${TF_LABEL[tf]}</label>`
+  ).join("") + (aTfs.length < ALL_TFS.length ? `<span style="font-size:12px;color:var(--text-muted)">4H–5m appear after the next screener run (v1.8)</span>` : "");
 }
 function bindFilters() {
   const upd = () => {
@@ -2877,12 +2886,14 @@ function bindFilters() {
     S.f.near = +$("fNear").value || 0; S.f.liq = +$("fLiq").value || 0; S.f.mcap = +$("fMcap").value || 0;
     const cr = $("fCrypto"); if (cr) S.f.cryptoOnly = cr.checked;
     $("tfToggles").querySelectorAll("input[data-tf]").forEach(cb => S.f["tf_" + cb.dataset.tf] = cb.checked);
+    $("aotsToggles").querySelectorAll("input[data-aots]").forEach(cb => S.f["aots_" + cb.dataset.aots] = cb.checked);
     const rn = $("fReqNear"); if (rn) S.f.requireNear = rn.checked;
     storage("scr-filters", JSON.stringify({ ...S.f, v: 3 }));
     render();
   };
   ["fRsi", "fSwing", "fNear", "fLiq", "fMcap"].forEach(id => $(id).addEventListener("input", upd));
   $("tfToggles").addEventListener("change", upd);
+  $("aotsToggles").addEventListener("change", upd);
   $("fReset").addEventListener("click", () => {
     S.f = { ...DEFAULTS, requireNear: true }; S.tfs.forEach(tf => S.f["tf_" + tf] = GATE_TFS.includes(tf));
     storage("scr-filters", JSON.stringify({ ...S.f, v: 3 })); syncFilterInputs(); render();
