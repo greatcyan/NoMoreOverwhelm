@@ -471,6 +471,195 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
   .tab-tools input { width: 100%; }
   .filters .reset { margin-left: 0; }
 }
+
+/* ---------- Elliott Wave guide (scoped .ew-guide; palette mapped onto dashboard tokens, same pattern as .mtp above) ---------- */
+
+  .ew-guide {
+    --ew-bg: transparent;
+    --ew-card: var(--surface-1);
+    --ew-card-2: var(--surface-2);
+    --ew-border: var(--border);
+    --ew-text: var(--text-primary);
+    --ew-muted: var(--text-secondary);
+    --ew-bull: var(--good-text);
+    --ew-bear: var(--critical-text);
+    --ew-accent: var(--series-2);
+    --ew-blue: var(--accent);
+
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ew-text);
+    background: var(--ew-bg);
+    line-height: 1.55;
+    padding: 0;
+    max-width: none;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  /* All styles are scoped under .ew-guide so it can drop into an existing app */  .ew-guide *, .ew-guide *::before, .ew-guide *::after { box-sizing: inherit; }
+  .ew-guide p { margin: 0 0 10px; }
+
+  .ew-header { margin-bottom: 14px; }
+  .ew-header h1 { font-size: 1.7rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .ew-header p { color: var(--ew-muted); margin: 0; }
+
+  /* Tabs */
+  .ew-tabs {
+    display: flex; gap: 4px; margin: 16px 0 6px; padding: 4px;
+    background: var(--ew-card); border: 1px solid var(--ew-border); border-radius: 12px;
+    overflow-x: auto; scrollbar-width: thin;
+  }
+  .ew-tab {
+    flex: none; font: inherit; font-size: 0.86rem; font-weight: 600; cursor: pointer;
+    color: var(--ew-muted); background: transparent; border: 0; border-radius: 8px;
+    padding: 8px 14px; white-space: nowrap;
+  }
+  .ew-tab:hover { color: var(--ew-text); }
+  .ew-tab[aria-selected="true"] {
+    color: var(--ew-text);
+    background: color-mix(in srgb, var(--ew-accent) 18%, transparent);
+    box-shadow: inset 0 -2px 0 var(--ew-accent);
+  }
+  .ew-tab:focus-visible { outline: 2px solid var(--ew-accent); outline-offset: 1px; }
+  .ew-panel[hidden] { display: none; }
+  .ew-panel > .ew-section-title:first-child { margin-top: 14px; }
+
+  .ew-section-title {
+    font-size: 1.2rem; margin: 30px 0 12px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--ew-border); scroll-margin-top: 16px;
+  }
+  .ew-section-title small { font-weight: 400; color: var(--ew-muted); font-size: 0.85rem; margin-left: 6px; }
+
+  .ew-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
+  @media (min-width: 760px) {
+    .ew-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    .ew-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .ew-span-2 { grid-column: span 2; }
+    .ew-span-all { grid-column: 1 / -1; }
+  }
+  @media (min-width: 760px) and (max-width: 1000px) {
+    .ew-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+  }
+
+  .ew-card {
+    background: var(--ew-card); border: 1px solid var(--ew-border);
+    border-radius: 12px; padding: 16px; min-width: 0;
+  }
+  .ew-card h3 { font-size: 1rem; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ew-card h4 { font-size: 0.85rem; margin: 12px 0 4px; color: var(--ew-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .ew-tag {
+    font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 2px 8px; border-radius: 999px; border: 1px solid var(--ew-border); color: var(--ew-muted);
+  }
+  .ew-tag.bull { color: var(--ew-bull); border-color: var(--ew-bull); }
+  .ew-tag.bear { color: var(--ew-bear); border-color: var(--ew-bear); }
+  .ew-tag.acc  { color: var(--ew-accent); border-color: var(--ew-accent); }
+
+  .ew-svg { width: 100%; max-width: 460px; height: auto; display: block; margin: 4px auto 10px; }
+  .ew-svg .bull { stroke: var(--ew-bull); }
+  .ew-svg .bear { stroke: var(--ew-bear); }
+  .ew-svg .ln { fill: none; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+  .ew-svg .ink { stroke: var(--ew-text); }
+  .ew-svg .guide { stroke: var(--ew-muted); stroke-dasharray: 5 5; stroke-width: 1.2; fill: none; }
+  .ew-svg .tl { stroke: var(--ew-accent); stroke-width: 1.6; fill: none; }
+  .ew-svg .lvl { stroke: var(--ew-blue); stroke-width: 1.2; stroke-dasharray: 3 4; }
+  .ew-svg .lbl {
+    font-size: 14px; font-weight: 700; text-anchor: middle; fill: var(--ew-text);
+    paint-order: stroke; stroke: var(--ew-card); stroke-width: 4px;
+  }
+  .ew-svg .lbl.bull { fill: var(--ew-bull); }
+  .ew-svg .lbl.bear { fill: var(--ew-bear); }
+  .ew-svg .lbl.acc  { fill: var(--ew-accent); }
+  .ew-svg .note {
+    font-size: 11px; fill: var(--ew-muted);
+    paint-order: stroke; stroke: var(--ew-card); stroke-width: 4px;
+  }
+  .ew-svg .note.blue { fill: var(--ew-blue); font-weight: 600; }
+  .ew-svg .dot { fill: var(--ew-card); stroke-width: 2; }
+  .ew-svg .click { fill: var(--ew-accent); }
+  .ew-svg .click-t { font-size: 10px; font-weight: 700; fill: #111; text-anchor: middle; }
+
+  .ew-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.82rem; color: var(--ew-muted); }
+  .ew-legend span::before {
+    content: ""; display: inline-block; width: 14px; height: 3px; margin-right: 6px; vertical-align: middle; border-radius: 2px;
+  }
+  .ew-legend .l-bull::before { background: var(--ew-bull); }
+  .ew-legend .l-bear::before { background: var(--ew-bear); }
+  .ew-legend .l-guide::before { background: repeating-linear-gradient(90deg, var(--ew-muted) 0 4px, transparent 4px 7px); }
+
+  .ew-list { margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }
+  .ew-list li { margin-bottom: 4px; }
+  .ew-list.muted { color: var(--ew-muted); }
+
+  .ew-kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 0.88rem; margin: 0; }
+  .ew-kv dt { color: var(--ew-muted); }
+  .ew-kv dd { margin: 0; }
+
+  .ew-rules { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .ew-rules li {
+    display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start;
+    padding: 12px; border: 1px solid var(--ew-border); border-radius: 10px; background: var(--ew-card-2);
+  }
+  .ew-num {
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700;
+    background: color-mix(in srgb, var(--ew-bear) 15%, transparent); color: var(--ew-bear);
+  }
+  .ew-rules strong { display: block; }
+  .ew-rules small { color: var(--ew-muted); display: block; margin-top: 2px; font-size: 0.85rem; }
+
+  .ew-table-wrap { overflow-x: auto; }
+  .ew-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .ew-table th, .ew-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--ew-border); vertical-align: top; }
+  .ew-table th { color: var(--ew-muted); font-weight: 600; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ew-table td:first-child { font-weight: 700; white-space: nowrap; }
+  .ew-fib { color: var(--ew-accent); font-weight: 600; white-space: nowrap; }
+  .ew-bad { color: var(--ew-bear); font-weight: 600; }
+  .ew-good { color: var(--ew-bull); font-weight: 600; }
+
+  .ew-callout {
+    margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: 0.88rem;
+    border-left: 3px solid var(--ew-accent);
+    background: color-mix(in srgb, var(--ew-accent) 10%, transparent);
+  }
+  .ew-callout.bear { border-left-color: var(--ew-bear); background: color-mix(in srgb, var(--ew-bear) 9%, transparent); }
+  .ew-callout.bull { border-left-color: var(--ew-bull); background: color-mix(in srgb, var(--ew-bull) 9%, transparent); }
+
+  /* Wave personality cards */
+  .ew-wave-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .ew-badge {
+    width: 38px; height: 38px; flex: none; border-radius: 10px; display: grid; place-items: center;
+    font-weight: 800; font-size: 1.05rem;
+  }
+  .ew-badge.bull { background: color-mix(in srgb, var(--ew-bull) 16%, transparent); color: var(--ew-bull); }
+  .ew-badge.bear { background: color-mix(in srgb, var(--ew-bear) 16%, transparent); color: var(--ew-bear); }
+  .ew-wave-head strong { display: block; }
+  .ew-wave-head span { font-size: 0.8rem; color: var(--ew-muted); }
+
+  /* Decision tree */
+  .ew-flow { display: grid; gap: 10px; }
+  .ew-step {
+    border: 1px solid var(--ew-border); border-radius: 10px; padding: 12px; background: var(--ew-card-2);
+  }
+  .ew-step-n { font-size: 0.72rem; font-weight: 700; color: var(--ew-accent); text-transform: uppercase; letter-spacing: 0.06em; }
+  .ew-step h5 { margin: 2px 0 8px; font-size: 0.95rem; }
+  .ew-branches { display: grid; gap: 8px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .ew-branches { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); } }
+  .ew-branch { border: 1px solid var(--ew-border); border-radius: 8px; padding: 10px; background: var(--ew-card); font-size: 0.86rem; }
+  .ew-branch b { display: block; margin-bottom: 3px; }
+  .ew-branch .ew-fib { display: block; margin-top: 4px; white-space: normal; }
+  .ew-arrow { text-align: center; color: var(--ew-muted); font-size: 1.1rem; line-height: 1; }
+
+  .ew-check { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .ew-check label {
+    display: flex; gap: 10px; align-items: flex-start; cursor: pointer;
+    padding: 9px 10px; border: 1px solid var(--ew-border); border-radius: 8px; font-size: 0.9rem;
+  }
+  .ew-check input { margin-top: 3px; accent-color: var(--ew-bull); width: 16px; height: 16px; flex: none; }
+  .ew-check input:checked + span { color: var(--ew-muted); text-decoration: line-through; }
+
+  .ew-footer { margin-top: 26px; font-size: 0.8rem; color: var(--ew-muted); text-align: center; }
+
 </style>
 </head>
 <body>
@@ -503,6 +692,7 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
     <button type="button" data-sec="psychology">Psychology</button>
     <button type="button" data-sec="chartguide">Chart Analysis</button>
     <button type="button" data-sec="setups">Setups</button>
+    <button type="button" data-sec="elliottwave">Elliott Wave</button>
   </nav>
   <div id="alertBox"></div>
 
@@ -1600,6 +1790,867 @@ footer.note { color: var(--text-muted); font-size: 12px; margin-top: 18px; line-
 
   </div><!-- /tabDailytarget -->
 
+  <div id="tabElliottwave" class="tab-panel" style="display:none;">
+<div class="ew-guide">
+
+  <!-- Shared SVG markers -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <marker id="ew-arrow-bull" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--ew-bull)"/>
+      </marker>
+      <marker id="ew-arrow-bear" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--ew-bear)"/>
+      </marker>
+    </defs>
+  </svg>
+
+  <header class="ew-header">
+    <h1>Elliott Wave Theory: Complete Guide</h1>
+    <p>Principles, rules, every wave's personality, and a full breakdown of A‑B‑C corrections.</p>
+  </header>
+
+  <div class="ew-tabs" role="tablist" aria-label="Elliott Wave guide sections">
+    <button class="ew-tab" role="tab" id="ew-t-basics" aria-controls="ew-p-basics" aria-selected="true">Basics &amp; rules</button>
+    <button class="ew-tab" role="tab" id="ew-t-waves" aria-controls="ew-p-waves" aria-selected="false" tabindex="-1">Wave by wave</button>
+    <button class="ew-tab" role="tab" id="ew-t-targets" aria-controls="ew-p-targets" aria-selected="false" tabindex="-1">Wave 1 &amp; targets</button>
+    <button class="ew-tab" role="tab" id="ew-t-corr" aria-controls="ew-p-corr" aria-selected="false" tabindex="-1">A‑B‑C corrections</button>
+    <button class="ew-tab" role="tab" id="ew-t-more" aria-controls="ew-p-more" aria-selected="false" tabindex="-1">Diagonals &amp; guidelines</button>
+    <button class="ew-tab" role="tab" id="ew-t-fib" aria-controls="ew-p-fib" aria-selected="false" tabindex="-1">Fib cheat sheet</button>
+    <button class="ew-tab" role="tab" id="ew-t-check" aria-controls="ew-p-check" aria-selected="false" tabindex="-1">Checklist</button>
+  </div>
+
+  <!-- ============ TAB: BASICS & RULES ============ -->
+  <div class="ew-panel" id="ew-p-basics" role="tabpanel" aria-labelledby="ew-t-basics">
+
+  <!-- ============ 1. CORE PRINCIPLES ============ -->
+  <h2 class="ew-section-title" id="ew-principles">Core principles</h2>
+
+  <div class="ew-grid cols-2">
+    <section class="ew-card ew-span-2">
+      <h3>The full cycle <span class="ew-tag bull">5 with trend</span><span class="ew-tag bear">3 against</span></h3>
+      <svg class="ew-svg" style="max-width:760px" viewBox="0 0 640 290" role="img" aria-label="Five-wave impulse followed by an A-B-C correction">
+        <line class="guide" x1="40" y1="250" x2="230" y2="250"/>
+        <text class="note" x="160" y="268">Wave 2 must stay above this (start)</text>
+        <line class="guide" x1="110" y1="180" x2="400" y2="180"/>
+        <text class="note" x="236" y="196">Wave 4 must stay above this (wave 1 top)</text>
+        <polyline class="ln bull" points="40,250 110,180 150,220 290,60 340,130 420,40"/>
+        <polyline class="ln bear" points="420,40 480,120 520,85 600,175"/>
+        <g class="bull">
+          <circle class="dot" cx="40" cy="250" r="4"/><circle class="dot" cx="110" cy="180" r="4"/>
+          <circle class="dot" cx="150" cy="220" r="4"/><circle class="dot" cx="290" cy="60" r="4"/>
+          <circle class="dot" cx="340" cy="130" r="4"/><circle class="dot" cx="420" cy="40" r="4"/>
+        </g>
+        <g class="bear">
+          <circle class="dot" cx="480" cy="120" r="4"/><circle class="dot" cx="520" cy="85" r="4"/>
+          <circle class="dot" cx="600" cy="175" r="4"/>
+        </g>
+        <text class="lbl" x="26" y="240">0</text>
+        <text class="lbl bull" x="110" y="168">1</text>
+        <text class="lbl bull" x="150" y="241">2</text>
+        <text class="lbl bull" x="290" y="47">3</text>
+        <text class="lbl bull" x="340" y="152">4</text>
+        <text class="lbl bull" x="420" y="27">5</text>
+        <text class="lbl bear" x="480" y="142">A</text>
+        <text class="lbl bear" x="520" y="72">B</text>
+        <text class="lbl bear" x="600" y="197">C</text>
+        <text class="note" x="300" y="100" text-anchor="middle">Wave 3: usually longest</text>
+        <text class="note" x="560" y="235" text-anchor="middle">Correction often ends in</text>
+        <text class="note" x="560" y="250" text-anchor="middle">wave 4 territory</text>
+      </svg>
+      <div class="ew-legend">
+        <span class="l-bull">Motive waves (with trend)</span>
+        <span class="l-bear">Corrective waves (against trend)</span>
+        <span class="l-guide">Rule boundary</span>
+      </div>
+    </section>
+
+    <section class="ew-card">
+      <h3>The 6 big ideas</h3>
+      <ol class="ew-list">
+        <li><b>5‑3 pattern:</b> markets advance in 5 waves with the trend and correct in 3 against it.</li>
+        <li><b>Motive vs corrective:</b> waves 1, 3, 5 (and A, C) are motive. Waves 2, 4 (and B) are corrective.</li>
+        <li><b>Fractal:</b> each wave is made of smaller waves. A wave 1 contains its own 1‑2‑3‑4‑5.</li>
+        <li><b>Degree matters:</b> a 15m "wave 5" can be a tiny part of a daily wave 1.</li>
+        <li><b>Fibonacci proportions:</b> waves relate by 0.382, 0.5, 0.618, 1.0, 1.618, 2.618.</li>
+        <li><b>Crowd psychology:</b> each wave has a typical mood (doubt, fear, conviction, boredom, euphoria).</li>
+      </ol>
+    </section>
+
+    <section class="ew-card">
+      <h3>Internal structure of each pattern</h3>
+      <div class="ew-table-wrap">
+        <table class="ew-table">
+          <thead><tr><th>Pattern</th><th>Sub-waves</th><th>Family</th></tr></thead>
+          <tbody>
+            <tr><td>Impulse</td><td>5‑3‑5‑3‑5</td><td class="ew-good">Motive</td></tr>
+            <tr><td>Diagonal</td><td>3‑3‑3‑3‑3 (or 5‑3‑5‑3‑5)</td><td class="ew-good">Motive</td></tr>
+            <tr><td>Zigzag</td><td>5‑3‑5</td><td class="ew-bad">Corrective</td></tr>
+            <tr><td>Flat</td><td>3‑3‑5</td><td class="ew-bad">Corrective</td></tr>
+            <tr><td>Triangle</td><td>3‑3‑3‑3‑3</td><td class="ew-bad">Corrective</td></tr>
+            <tr><td>Combination</td><td>W‑X‑Y (‑X‑Z)</td><td class="ew-bad">Corrective</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ew-callout">Quick test: a move with <b>5</b> sub-waves is going <b>with</b> the bigger trend. A move with <b>3</b> is a correction.</div>
+    </section>
+
+    <section class="ew-card ew-span-2">
+      <h3>Wave degrees <span class="ew-tag">largest → smallest</span></h3>
+      <div class="ew-table-wrap">
+        <table class="ew-table">
+          <thead><tr><th>Degree</th><th>Typical timeframe (crypto)</th><th>Label style</th></tr></thead>
+          <tbody>
+            <tr><td>Cycle</td><td>Months to years (weekly chart)</td><td>Ⅰ Ⅱ Ⅲ Ⅳ Ⅴ · a b c</td></tr>
+            <tr><td>Primary</td><td>Weeks to months (daily)</td><td>①②③④⑤ · Ⓐ Ⓑ Ⓒ</td></tr>
+            <tr><td>Intermediate</td><td>Days to weeks (4h)</td><td>(1)(2)(3)(4)(5) · (A)(B)(C)</td></tr>
+            <tr><td>Minor</td><td>Days (1h)</td><td>1 2 3 4 5 · A B C</td></tr>
+            <tr><td>Minute</td><td>Hours (15m)</td><td>ⅰ ⅱ ⅲ ⅳ ⅴ · a b c</td></tr>
+            <tr><td>Minuette</td><td>Minutes (1–5m)</td><td>(i)(ii)(iii)(iv)(v) · (a)(b)(c)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ew-callout">Always count the higher degree first. The daily sets the direction, and the 15m sets the timing.</div>
+    </section>
+  </div>
+
+  <!-- ============ 2. RULES ============ -->
+  <h2 class="ew-section-title" id="ew-rules">The 3 unbreakable rules <small>break one = wrong count</small></h2>
+
+  <div class="ew-grid cols-2">
+    <section class="ew-card">
+      <ol class="ew-rules">
+        <li>
+          <div class="ew-num">1</div>
+          <div>
+            <strong>Wave 2 never retraces more than 100% of wave 1</strong>
+            <small>It can't go below wave 1's start. This is your invalidation for a wave 3 trade.</small>
+          </div>
+        </li>
+        <li>
+          <div class="ew-num">2</div>
+          <div>
+            <strong>Wave 3 is never the shortest of waves 1, 3 and 5</strong>
+            <small>It doesn't have to be the longest, just never the shortest.</small>
+          </div>
+        </li>
+        <li>
+          <div class="ew-num">3</div>
+          <div>
+            <strong>Wave 4 never enters wave 1's price territory</strong>
+            <small>Exception: diagonals (wedges), where overlap is normal.</small>
+          </div>
+        </li>
+      </ol>
+    </section>
+    <section class="ew-card">
+      <h3>Rules for corrections too</h3>
+      <ul class="ew-list">
+        <li><b>Zigzag:</b> wave B never goes beyond the start of wave A.</li>
+        <li><b>Flat:</b> wave B must retrace at least <span class="ew-fib">90%</span> of A. Less than that means it isn't a flat.</li>
+        <li><b>Triangle:</b> each leg is a 3-wave move, and in a contracting triangle each leg is smaller than the one before.</li>
+        <li><b>Combination:</b> at most one triangle, and only as the final part.</li>
+        <li>A <b>triangle never appears as wave 2</b>, and wave 2 is never a combination ending in a triangle.</li>
+      </ul>
+      <div class="ew-callout bear">If price breaks a rule level, don't argue with the market. Recount immediately, because that level <b>is</b> your stop.</div>
+    </section>
+  </div>
+
+  </div>
+
+  <div class="ew-panel" id="ew-p-waves" role="tabpanel" aria-labelledby="ew-t-waves" hidden>
+
+  <!-- ============ 3. WAVE BY WAVE ============ -->
+  <h2 class="ew-section-title" id="ew-waves">Wave by wave <small>structure · Fib · personality · how to trade</small></h2>
+
+  <div class="ew-grid cols-3">
+    <section class="ew-card">
+      <div class="ew-wave-head"><div class="ew-badge bull">1</div><div><strong>Wave 1: the doubted start</strong><span>Motive · 5 waves or leading diagonal</span></div></div>
+      <dl class="ew-kv">
+        <dt>Fib</dt><dd>The base unit. Every later target is measured from it.</dd>
+        <dt>Mood</dt><dd>"Just a bounce." Most traders are still bearish.</dd>
+        <dt>Volume</dt><dd>Modest, slightly above the prior lows.</dd>
+      </dl>
+      <h4>Signs</h4>
+      <ul class="ew-list muted">
+        <li>Breaks the last lower high of the old trend</li>
+        <li>RSI moves back above 50</li>
+        <li>5 sub-waves on a lower timeframe</li>
+      </ul>
+      <div class="ew-callout">Don't chase it. Identify it, then wait for wave 2.</div>
+    </section>
+
+    <section class="ew-card">
+      <div class="ew-wave-head"><div class="ew-badge bull">2</div><div><strong>Wave 2: the shakeout</strong><span>Corrective · usually a zigzag (sharp)</span></div></div>
+      <dl class="ew-kv">
+        <dt>Fib</dt><dd><span class="ew-fib">50–61.8%</span> of W1, up to 78.6%. Never more than 100%.</dd>
+        <dt>Mood</dt><dd>Fear returns: "The downtrend is back."</dd>
+        <dt>Volume</dt><dd>Lower than in wave 1.</dd>
+      </dl>
+      <h4>Signs</h4>
+      <ul class="ew-list muted">
+        <li>Holds above wave 1's start, making a higher low</li>
+        <li>Often bullish RSI divergence at its low</li>
+        <li>Can never be a triangle</li>
+      </ul>
+      <div class="ew-callout bull">The best risk/reward entry, for wave 3. Stop below wave 1's start.</div>
+    </section>
+
+    <section class="ew-card">
+      <div class="ew-wave-head"><div class="ew-badge bull">3</div><div><strong>Wave 3: the power wave</strong><span>Motive · 5 waves, often extended</span></div></div>
+      <dl class="ew-kv">
+        <dt>Fib</dt><dd><span class="ew-fib">1.618×</span> W1 typical, 2.618× when extended.</dd>
+        <dt>Mood</dt><dd>"Point of recognition." Everyone sees the trend.</dd>
+        <dt>Volume</dt><dd>Highest of the impulse. RSI reaches its extreme.</dd>
+      </dl>
+      <h4>Signs</h4>
+      <ul class="ew-list muted">
+        <li>Clean break above wave 1's high</li>
+        <li>Gaps, long candles, shallow pullbacks</li>
+        <li>Never the shortest wave (Rule 2)</li>
+      </ul>
+      <div class="ew-callout">Hold the position. Don't pick the top of wave 3; it's usually not the end.</div>
+    </section>
+
+    <section class="ew-card">
+      <div class="ew-wave-head"><div class="ew-badge bull">4</div><div><strong>Wave 4: the boring one</strong><span>Corrective · flat, triangle or combination</span></div></div>
+      <dl class="ew-kv">
+        <dt>Fib</dt><dd><span class="ew-fib">23.6–38.2%</span> of W3. Often ends near sub-wave (iv) of 3.</dd>
+        <dt>Mood</dt><dd>Frustration and chop. Traders get stopped both ways.</dd>
+        <dt>Volume</dt><dd>Declining.</dd>
+      </dl>
+      <h4>Signs</h4>
+      <ul class="ew-list muted">
+        <li>Sideways if wave 2 was sharp (alternation)</li>
+        <li>Triangles live here</li>
+        <li>Can't overlap wave 1's top (Rule 3)</li>
+      </ul>
+      <div class="ew-callout">Avoid trading the chop. Wait for the break toward wave 5.</div>
+    </section>
+
+    <section class="ew-card">
+      <div class="ew-wave-head"><div class="ew-badge bull">5</div><div><strong>Wave 5: the final push</strong><span>Motive · 5 waves or ending diagonal</span></div></div>
+      <dl class="ew-kv">
+        <dt>Fib</dt><dd><span class="ew-fib">≈ W1</span>, or 0.618× (W1 start → W3 end) projected from W4.</dd>
+        <dt>Mood</dt><dd>Optimism or euphoria. "It will go much higher."</dd>
+        <dt>Volume</dt><dd>Usually lower than W3. Crypto can show a blow-off spike.</dd>
+      </dl>
+      <h4>Signs</h4>
+      <ul class="ew-list muted">
+        <li>RSI divergence versus wave 3</li>
+        <li>Truncation is possible (it fails to beat wave 3's high)</li>
+        <li>After a triangle, the thrust ≈ the triangle's width</li>
+      </ul>
+      <div class="ew-callout bear">Take profits and tighten stops. Don't open new trend trades here.</div>
+    </section>
+
+    <section class="ew-card">
+      <div class="ew-wave-head"><div class="ew-badge bear">A</div><div><strong>Wave A: "buy the dip"</strong><span>5 waves (→ zigzag) or 3 waves (→ flat or triangle)</span></div></div>
+      <dl class="ew-kv">
+        <dt>Mood</dt><dd>Most traders think it's a normal pullback.</dd>
+        <dt>Key</dt><dd>Its <b>internal structure tells you which correction</b> is coming.</dd>
+      </dl>
+      <h4>Signs</h4>
+      <ul class="ew-list muted">
+        <li>Breaks the wave 5 trendline or channel</li>
+        <li>Often retraces back to wave 4 of the impulse</li>
+      </ul>
+      <div class="ew-callout">Count its sub-waves: 5 = zigzag ahead, 3 = flat or triangle ahead.</div>
+    </section>
+
+    <section class="ew-card">
+      <div class="ew-wave-head"><div class="ew-badge bear">B</div><div><strong>Wave B: the trap</strong><span>Always 3 waves · can be complex</span></div></div>
+      <dl class="ew-kv">
+        <dt>Fib</dt><dd>Zigzag: <span class="ew-fib">38.2–78.6%</span> of A. Flat: <span class="ew-fib">90–138%</span> of A.</dd>
+        <dt>Mood</dt><dd>"The trend is back!" A bull trap or bear trap.</dd>
+        <dt>Volume</dt><dd>Weak, with poor follow-through.</dd>
+      </dl>
+      <h4>Signs</h4>
+      <ul class="ew-list muted">
+        <li>Overlapping, choppy candles</li>
+        <li>Momentum weaker than wave 5</li>
+      </ul>
+      <div class="ew-callout">Measure B ÷ A. That ratio classifies the correction (see section 6).</div>
+    </section>
+
+    <section class="ew-card">
+      <div class="ew-wave-head"><div class="ew-badge bear">C</div><div><strong>Wave C: the damage</strong><span>Always 5 waves (impulse or ending diagonal)</span></div></div>
+      <dl class="ew-kv">
+        <dt>Fib</dt><dd><span class="ew-fib">C = A</span> most common, 0.618× or 1.618× A.</dd>
+        <dt>Mood</dt><dd>Capitulation: "It's over."</dd>
+        <dt>Volume</dt><dd>Heavy, often a spike at the end.</dd>
+      </dl>
+      <h4>Signs</h4>
+      <ul class="ew-list muted">
+        <li>Behaves like a wave 3, but against the trend</li>
+        <li>Ends with divergence at the Fib target</li>
+      </ul>
+      <div class="ew-callout bull">When C completes, the bigger trend resumes. This is where you hunt for the new wave 1.</div>
+    </section>
+
+    <section class="ew-card">
+      <h3>Wave psychology at a glance</h3>
+      <div class="ew-table-wrap">
+        <table class="ew-table">
+          <tbody>
+            <tr><td>1</td><td>Doubt</td></tr>
+            <tr><td>2</td><td>Fear</td></tr>
+            <tr><td>3</td><td>Conviction</td></tr>
+            <tr><td>4</td><td>Boredom</td></tr>
+            <tr><td>5</td><td>Euphoria</td></tr>
+            <tr><td>A</td><td>Denial</td></tr>
+            <tr><td>B</td><td>False hope</td></tr>
+            <tr><td>C</td><td>Capitulation</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  </div>
+
+  <div class="ew-panel" id="ew-p-targets" role="tabpanel" aria-labelledby="ew-t-targets" hidden>
+
+  <!-- ============ 4. COUNTING WAVE 1 ============ -->
+  <h2 class="ew-section-title" id="ew-wave1">How to count wave 1</h2>
+
+  <div class="ew-grid cols-2">
+    <section class="ew-card">
+      <h3>Four steps</h3>
+      <ol class="ew-list">
+        <li><b>The prior trend looks complete:</b> a finished 5-wave move or A‑B‑C, at support, with RSI divergence.</li>
+        <li><b>The rise is impulsive:</b> 5 sub-waves on a lower timeframe. A 3-wave rise is usually just a correction.</li>
+        <li><b>It breaks structure:</b> a close above the last lower high (change of character).</li>
+        <li><b>Wave 2 confirms it:</b> the pullback holds above wave 1's start, then price breaks wave 1's high.</li>
+      </ol>
+      <div class="ew-callout">You don't trade wave 1, you <b>find</b> it. The trade is wave 3, entered during or after wave 2.</div>
+    </section>
+
+    <section class="ew-card">
+      <h3>Common wave 1 mistakes</h3>
+      <ul class="ew-list">
+        <li>Labeling every bounce as wave 1 without checking for 5 sub-waves.</li>
+        <li>Calling a <span class="ew-fib">0.236</span> pullback a finished wave 2. It's usually only the first dip.</li>
+        <li>Placing the stop under wave 2's low instead of wave 1's start. The true invalidation is wave 1's start.</li>
+        <li>Ignoring the higher timeframe. A clean 15m wave 1 inside a daily downtrend is often a B wave.</li>
+      </ul>
+    </section>
+  </div>
+
+  <!-- ============ 5. TARGETS ============ -->
+  <h2 class="ew-section-title" id="ew-targets">Targets for every wave</h2>
+
+  <div class="ew-grid cols-2">
+    <section class="ew-card">
+      <h3>Trend-Based Fib Extension <span class="ew-tag acc">3 clicks</span></h3>
+      <svg class="ew-svg" viewBox="0 0 300 190" role="img" aria-label="Three-click Fibonacci extension from wave 1 and wave 2 projecting wave 3 targets">
+        <line class="lvl" x1="110" y1="100" x2="290" y2="100"/>
+        <line class="lvl" x1="110" y1="69" x2="290" y2="69"/>
+        <line class="lvl" x1="110" y1="19" x2="290" y2="19"/>
+        <text class="note blue" x="290" y="95" text-anchor="end">1.0</text>
+        <text class="note blue" x="290" y="64" text-anchor="end">1.618 (typical W3)</text>
+        <text class="note blue" x="290" y="14" text-anchor="end">2.618 (extended)</text>
+        <polyline class="ln bull" points="30,170 90,120 120,150 205,69"/>
+        <polyline class="guide" points="205,69 240,19"/>
+        <circle class="click" cx="30" cy="170" r="8"/><text class="click-t" x="30" y="173.5">1</text>
+        <circle class="click" cx="90" cy="120" r="8"/><text class="click-t" x="90" y="123.5">2</text>
+        <circle class="click" cx="120" cy="150" r="8"/><text class="click-t" x="120" y="153.5">3</text>
+        <text class="note" x="30" y="188" text-anchor="middle">W1 start</text>
+        <text class="note" x="72" y="112" text-anchor="middle">W1 end</text>
+        <text class="note" x="140" y="170" text-anchor="middle">W2 end</text>
+      </svg>
+      <p class="ew-list muted" style="padding:0;font-size:.86rem">Click wave 1's start, wave 1's end, then wave 2's end. The tool projects wave 1's length from the end of wave 2.</p>
+    </section>
+
+    <section class="ew-card">
+      <h3>Wave 2 depth → wave 3 target</h3>
+      <div class="ew-table-wrap">
+        <table class="ew-table">
+          <thead><tr><th>W2 retrace</th><th>Meaning</th><th>W3 target</th></tr></thead>
+          <tbody>
+            <tr><td>0.236</td><td>Very strong, <i>or W2 not done</i></td><td class="ew-fib">2.618+ (suspicious)</td></tr>
+            <tr><td>0.382</td><td>Strong buyers</td><td class="ew-fib">2.0–2.618×</td></tr>
+            <tr><td>0.5</td><td>Normal</td><td class="ew-fib">1.618–2.0×</td></tr>
+            <tr><td>0.618</td><td>Most common</td><td class="ew-fib">1.618×</td></tr>
+            <tr><td>0.786</td><td>Weak; doubtful count</td><td class="ew-fib">1.0–1.272×</td></tr>
+            <tr><td>&gt; 1.0</td><td class="ew-bad">Rule 1 broken</td><td class="ew-bad">Recount</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ew-callout">A shallow pullback means strength and a longer wave 3. A deep pullback means weakness and a shorter wave 3.</div>
+    </section>
+
+    <section class="ew-card">
+      <h3>Wave 4 targets</h3>
+      <ul class="ew-list">
+        <li><span class="ew-fib">0.382</span> of wave 3 is most common, <span class="ew-fib">0.236</span> if wave 3 was very extended.</li>
+        <li>Often ends near the <b>sub-wave (iv)</b> of wave 3.</li>
+        <li>Deeper (<span class="ew-fib">0.5</span>) if wave 3 was <i>not</i> extended.</li>
+        <li><b>Hard limit:</b> wave 1's top (Rule 3).</li>
+      </ul>
+    </section>
+
+    <section class="ew-card">
+      <h3>Wave 5 targets</h3>
+      <ul class="ew-list">
+        <li><b>If wave 3 was extended:</b> 5 ≈ 1 in length, or <span class="ew-fib">0.618×</span> W1.</li>
+        <li><b>If waves 1 and 3 are similar:</b> 5 tends to extend to <span class="ew-fib">1.618×</span> W1.</li>
+        <li><b>Projection:</b> <span class="ew-fib">0.618–1.0×</span> (W1 start → W3 end), measured from W4's end.</li>
+        <li><b>After a triangle in wave 4:</b> thrust ≈ the triangle's widest part.</li>
+      </ul>
+    </section>
+
+    <section class="ew-card ew-span-2">
+      <h3>Match the target to the wave you're trading</h3>
+      <div class="ew-table-wrap">
+        <table class="ew-table">
+          <thead><tr><th>Entry</th><th>Realistic target</th><th>Invalidation</th></tr></thead>
+          <tbody>
+            <tr><td>Wave 3 (in or after W2)</td><td><span class="ew-fib">1.618</span>× W1 from W2's end</td><td>Below W1's start</td></tr>
+            <tr><td>Wave 5 (in or after W4)</td><td>≈ W1, or the triangle width</td><td>Below W1's top</td></tr>
+            <tr><td>Wave C (after B)</td><td><span class="ew-fib">C = A</span> (1.618× in an expanded flat)</td><td>Beyond B's extreme</td></tr>
+            <tr><td>Range break</td><td>Range height from the breakout</td><td>Back inside the range</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ew-callout"><b>Scale out:</b> TP1 ~50% at the nearest confluence · TP2 ~30% at the next extension · runner ~20% trailed under the 20 MA.</div>
+    </section>
+  </div>
+
+  </div>
+
+  <div class="ew-panel" id="ew-p-corr" role="tabpanel" aria-labelledby="ew-t-corr" hidden>
+
+  <!-- ============ 6. CORRECTIONS ============ -->
+  <h2 class="ew-section-title" id="ew-corrections">A‑B‑C corrections in detail <small>shown in an uptrend; flip for a downtrend</small></h2>
+
+  <div class="ew-grid cols-2">
+    <section class="ew-card">
+      <h3>Zigzag <span class="ew-tag">5‑3‑5</span><span class="ew-tag bear">sharp</span></h3>
+      <svg class="ew-svg" viewBox="0 0 300 190" role="img" aria-label="Zigzag correction: sharp A down, partial B, C down equal to A">
+        <line class="guide" x1="60" y1="30" x2="290" y2="30"/>
+        <text class="note" x="288" y="24" text-anchor="end">B can't pass A's start</text>
+        <polyline class="ln bull" points="15,170 60,30"/>
+        <polyline class="ln bear" points="60,30 130,120 165,75 245,165"/>
+        <text class="lbl bear" x="130" y="140">A</text>
+        <text class="lbl bear" x="165" y="63">B</text>
+        <text class="lbl bear" x="258" y="180">C</text>
+      </svg>
+      <dl class="ew-kv">
+        <dt>A</dt><dd>5 waves, sharp</dd>
+        <dt>B</dt><dd><span class="ew-fib">38.2–78.6%</span> of A (often 50–61.8%)</dd>
+        <dt>C</dt><dd><span class="ew-fib">= A</span>, or 0.618× / 1.618× A</dd>
+        <dt>Where</dt><dd>Wave 2, wave A, wave X</dd>
+      </dl>
+      <div class="ew-callout bull"><b>What happens next:</b> a deep, fast correction that resets momentum. In wave 2 position, expect a <b>strong wave 3</b> once C completes.</div>
+    </section>
+
+    <section class="ew-card">
+      <h3>Regular flat <span class="ew-tag">3‑3‑5</span><span class="ew-tag acc">sideways</span></h3>
+      <svg class="ew-svg" viewBox="0 0 300 190" role="img" aria-label="Regular flat: B returns near A's start, C ends slightly beyond A's end">
+        <line class="guide" x1="60" y1="40" x2="290" y2="40"/>
+        <line class="guide" x1="130" y1="120" x2="290" y2="120"/>
+        <text class="note" x="288" y="34" text-anchor="end">A start</text>
+        <text class="note" x="288" y="114" text-anchor="end">A end</text>
+        <polyline class="ln bull" points="15,170 60,40"/>
+        <polyline class="ln bear" points="60,40 130,120 190,44 255,128"/>
+        <text class="lbl bear" x="130" y="140">A</text>
+        <text class="lbl bear" x="190" y="32">B</text>
+        <text class="lbl bear" x="255" y="148">C</text>
+      </svg>
+      <dl class="ew-kv">
+        <dt>A</dt><dd>3 waves (not 5!)</dd>
+        <dt>B</dt><dd><span class="ew-fib">90–105%</span> of A, back near A's start</dd>
+        <dt>C</dt><dd><span class="ew-fib">≈ A</span>, ends slightly beyond A's end</dd>
+        <dt>Where</dt><dd>Wave 4, wave B</dd>
+      </dl>
+      <div class="ew-callout"><b>What happens next:</b> a shallow, sideways correction, meaning the trend is healthy. After C, the trend resumes at moderate strength.</div>
+    </section>
+
+    <section class="ew-card">
+      <h3>Expanded flat <span class="ew-tag">3‑3‑5</span><span class="ew-tag bear">the trap</span></h3>
+      <svg class="ew-svg" viewBox="0 0 300 190" role="img" aria-label="Expanded flat: B makes a new high beyond A's start, C falls well beyond A's end">
+        <line class="guide" x1="60" y1="55" x2="290" y2="55"/>
+        <line class="guide" x1="120" y1="110" x2="290" y2="110"/>
+        <text class="note" x="288" y="70" text-anchor="end">A start</text>
+        <text class="note" x="288" y="104" text-anchor="end">A end</text>
+        <polyline class="ln bull" points="15,170 60,55"/>
+        <polyline class="ln bear" points="60,55 120,110 175,30 260,140"/>
+        <text class="lbl bear" x="120" y="130">A</text>
+        <text class="lbl bear" x="175" y="20">B</text>
+        <text class="lbl bear" x="260" y="160">C</text>
+        <text class="note" x="182" y="44">new high!</text>
+      </svg>
+      <dl class="ew-kv">
+        <dt>A</dt><dd>3 waves</dd>
+        <dt>B</dt><dd><span class="ew-fib">105–138%</span> of A, a <b>new high</b> beyond A's start</dd>
+        <dt>C</dt><dd><span class="ew-fib">1.272–1.618×</span> A (up to 2.618), well beyond A's end</dd>
+        <dt>Where</dt><dd>Wave 4, wave B, sometimes wave 2</dd>
+      </dl>
+      <div class="ew-callout bear"><b>What happens next:</b> B's new high traps breakout buyers, then C drops harder than A and stops them out. <b>This is the most common flat.</b> Once C hits its target with divergence, the uptrend resumes.</div>
+    </section>
+
+    <section class="ew-card">
+      <h3>Running flat <span class="ew-tag">3‑3‑5</span><span class="ew-tag bull">strong trend</span></h3>
+      <svg class="ew-svg" viewBox="0 0 300 190" role="img" aria-label="Running flat: B exceeds A's start, C fails to reach A's end, then strong continuation">
+        <line class="guide" x1="60" y1="60" x2="240" y2="60"/>
+        <line class="guide" x1="120" y1="120" x2="290" y2="120"/>
+        <text class="note" x="236" y="54" text-anchor="end">A start</text>
+        <text class="note" x="288" y="136" text-anchor="end">A end (not reached)</text>
+        <polyline class="ln bull" points="15,175 60,60"/>
+        <polyline class="ln bear" points="60,60 120,120 180,38 245,100"/>
+        <polyline class="ln bull" points="245,100 288,18" marker-end="url(#ew-arrow-bull)"/>
+        <text class="lbl bear" x="120" y="140">A</text>
+        <text class="lbl bear" x="180" y="28">B</text>
+        <text class="lbl bear" x="245" y="120">C</text>
+      </svg>
+      <dl class="ew-kv">
+        <dt>A</dt><dd>3 waves</dd>
+        <dt>B</dt><dd>Beyond A's start</dd>
+        <dt>C</dt><dd><b>Fails</b> to reach A's end</dd>
+        <dt>Where</dt><dd>Rare. Wave 2 or 4 in very strong trends.</dd>
+      </dl>
+      <div class="ew-callout bull"><b>What happens next:</b> buyers are so aggressive that they won't let C finish. Expect a <b>powerful continuation</b>. It's rare, so confirm it before assuming.</div>
+    </section>
+
+    <section class="ew-card">
+      <h3>Contracting triangle <span class="ew-tag">3‑3‑3‑3‑3</span><span class="ew-tag bull">continuation</span></h3>
+      <svg class="ew-svg" viewBox="0 0 480 220" role="img" aria-label="Contracting triangle a-b-c-d-e followed by thrust">
+        <polyline class="ln bull" points="20,210 130,60"/>
+        <line class="tl" x1="130" y1="60" x2="405" y2="129"/>
+        <line class="tl" x1="130" y1="190" x2="405" y2="133"/>
+        <line class="guide" x1="118" y1="60" x2="118" y2="190"/>
+        <text class="note" x="112" y="128" text-anchor="end">width</text>
+        <polyline class="ln ink" style="stroke-width:2" points="130,60 180,180 230,85 275,160 315,106 350,144"/>
+        <polyline class="ln bull" points="350,144 455,22" marker-end="url(#ew-arrow-bull)"/>
+        <text class="lbl" x="180" y="202">a</text>
+        <text class="lbl" x="230" y="74">b</text>
+        <text class="lbl" x="275" y="182">c</text>
+        <text class="lbl" x="315" y="95">d</text>
+        <text class="lbl" x="350" y="166">e</text>
+        <text class="note" x="408" y="96">thrust ≈ width</text>
+      </svg>
+      <dl class="ew-kv">
+        <dt>Legs</dt><dd>Each ≈ <span class="ew-fib">0.618</span> of the previous (61.8–85% range)</dd>
+        <dt>Where</dt><dd>Wave 4, B or X only (never wave 2)</dd>
+        <dt>Variants</dt><dd>Barrier (one flat line), expanding, running (B beyond A's start)</dd>
+      </dl>
+      <div class="ew-callout"><b>What happens next:</b> a quick thrust in the trend's direction of about the triangle's width. The thrust is usually the <b>final wave</b>, so take profits there.</div>
+    </section>
+
+    <section class="ew-card">
+      <h3>Combinations <span class="ew-tag">W‑X‑Y</span><span class="ew-tag acc">time-consuming</span></h3>
+      <svg class="ew-svg" viewBox="0 0 300 190" role="img" aria-label="Double three combination W-X-Y moving sideways">
+        <polyline class="ln bull" points="15,170 40,30"/>
+        <polyline class="ln bear" points="40,30 80,85 100,62 135,115"/>
+        <polyline class="ln" style="stroke:var(--ew-accent)" points="135,115 170,72"/>
+        <polyline class="ln bear" points="170,72 205,120 225,98 265,145"/>
+        <text class="lbl bear" x="135" y="135">W</text>
+        <text class="lbl acc" x="170" y="60">X</text>
+        <text class="lbl bear" x="265" y="165">Y</text>
+      </svg>
+      <dl class="ew-kv">
+        <dt>W, Y</dt><dd>Any correction (zigzag, flat; triangle only as the last part)</dd>
+        <dt>X</dt><dd>A connecting correction, usually a zigzag</dd>
+        <dt>Triple</dt><dd>W‑X‑Y‑X‑Z, the maximum</dd>
+        <dt>Where</dt><dd>Wave 4, wave B, ranges</dd>
+      </dl>
+      <div class="ew-callout"><b>What happens next:</b> the correction takes <b>time instead of price</b>. When a simple A‑B‑C "should" be done but price keeps chopping, suspect W‑X‑Y. The trend resumes afterward, but patience is required.</div>
+    </section>
+
+    <section class="ew-card ew-span-2">
+      <h3>All corrections compared</h3>
+      <div class="ew-table-wrap">
+        <table class="ew-table">
+          <thead><tr><th>Type</th><th>Structure</th><th>B vs A</th><th>C vs A</th><th>Usually in</th><th>Signals</th></tr></thead>
+          <tbody>
+            <tr><td>Zigzag</td><td>5‑3‑5</td><td class="ew-fib">38.2–78.6%</td><td class="ew-fib">1.0 (0.618–1.618)</td><td>Wave 2</td><td>Deep reset, strong move next</td></tr>
+            <tr><td>Double zigzag</td><td>W‑X‑Y</td><td>—</td><td>Y ≈ W</td><td>Wave 2, B</td><td>Extra-deep correction</td></tr>
+            <tr><td>Regular flat</td><td>3‑3‑5</td><td class="ew-fib">90–105%</td><td class="ew-fib">≈ 1.0</td><td>Wave 4, B</td><td>Healthy trend</td></tr>
+            <tr><td>Expanded flat</td><td>3‑3‑5</td><td class="ew-fib">105–138%</td><td class="ew-fib">1.272–1.618</td><td>Wave 4, B</td><td>Traps both sides, then the trend resumes</td></tr>
+            <tr><td>Running flat</td><td>3‑3‑5</td><td>&gt; 100%</td><td>&lt; 1.0</td><td>Strong trends</td><td>Very strong continuation</td></tr>
+            <tr><td>Triangle</td><td>3‑3‑3‑3‑3</td><td class="ew-fib">~0.618 each</td><td>—</td><td>Wave 4, B, X</td><td>Final thrust ahead</td></tr>
+            <tr><td>Combination</td><td>W‑X‑Y(‑X‑Z)</td><td>—</td><td>—</td><td>Wave 4, B</td><td>A long sideways range</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 7. DECISION TREE ============ -->
+  <h2 class="ew-section-title" id="ew-decide">Is it a flat or not? <small>decide in real time</small></h2>
+
+  <div class="ew-flow">
+    <div class="ew-step">
+      <div class="ew-step-n">Step 1</div>
+      <h5>Count the sub-waves inside wave A</h5>
+      <div class="ew-branches">
+        <div class="ew-branch"><b>A = 5 waves</b>Zigzag family. Expect a sharp correction, with B unable to pass A's start.</div>
+        <div class="ew-branch"><b>A = 3 waves</b>Flat, triangle or combination family. Expect a sideways correction.</div>
+      </div>
+    </div>
+    <div class="ew-arrow" aria-hidden="true">↓</div>
+    <div class="ew-step">
+      <div class="ew-step-n">Step 2</div>
+      <h5>Measure how far B retraces A (Fib retracement on A)</h5>
+      <div class="ew-branches">
+        <div class="ew-branch"><b>Under 78.6%</b>Zigzag (if A had 5 waves).<span class="ew-fib">C target: 1.0× A (1.618× extended)</span></div>
+        <div class="ew-branch"><b>90–105%</b>Regular flat.<span class="ew-fib">C target: ≈ A, just beyond A's end</span></div>
+        <div class="ew-branch"><b>105–138%</b>Expanded flat. Don't buy B's new high.<span class="ew-fib">C target: 1.272–1.618× A</span></div>
+        <div class="ew-branch"><b>Over 138%</b>Probably not a correction. The trend may have resumed, so recount.</div>
+        <div class="ew-branch"><b>Overlapping, shrinking 3s</b>A triangle is forming. Wait for the e leg, then the thrust.</div>
+      </div>
+    </div>
+    <div class="ew-arrow" aria-hidden="true">↓</div>
+    <div class="ew-step">
+      <div class="ew-step-n">Step 3</div>
+      <h5>Watch how wave C finishes</h5>
+      <div class="ew-branches">
+        <div class="ew-branch"><b>C reaches its target in 5 waves, with divergence</b>The correction is complete. Look for the new impulse (wave 1 or 3 of the bigger trend).</div>
+        <div class="ew-branch"><b>C fails to reach A's end</b>Running flat. The trend is very strong, so expect a powerful continuation.</div>
+        <div class="ew-branch"><b>C completes, but price keeps chopping sideways</b>It was only W. An X and a Y are coming (combination).</div>
+        <div class="ew-branch"><b>C goes far beyond 1.618–2.618× A</b>Not a correction. The bigger trend has likely reversed, so recount at a higher degree.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ew-grid cols-2" style="margin-top:14px">
+    <section class="ew-card">
+      <h3>Trading the correction</h3>
+      <ul class="ew-list">
+        <li><b>Zigzag:</b> after B, trade C toward <span class="ew-fib">C = A</span>. Stop beyond B.</li>
+        <li><b>Expanded flat:</b> fade B's breakout only with confirmation. The C target is <span class="ew-fib">1.618× A</span>.</li>
+        <li><b>Triangle:</b> don't trade inside it. Trade the break after e, or the retest of the broken line.</li>
+        <li><b>The best trade is usually the end of C:</b> it's the start of the next impulse in the bigger trend's direction.</li>
+      </ul>
+    </section>
+    <section class="ew-card">
+      <h3>Alternation in practice</h3>
+      <div class="ew-table-wrap">
+        <table class="ew-table">
+          <thead><tr><th>If wave 2 was…</th><th>Expect wave 4 to be…</th></tr></thead>
+          <tbody>
+            <tr><td>Sharp (zigzag)</td><td>Sideways (flat, triangle, combination)</td></tr>
+            <tr><td>Sideways (flat)</td><td>Sharp (zigzag)</td></tr>
+            <tr><td>Deep (61.8%+)</td><td>Shallow (23.6–38.2%)</td></tr>
+            <tr><td>Quick</td><td>Longer in time</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  </div>
+
+  <div class="ew-panel" id="ew-p-more" role="tabpanel" aria-labelledby="ew-t-more" hidden>
+
+  <!-- ============ 8. DIAGONALS ============ -->
+  <h2 class="ew-section-title" id="ew-diagonals">Diagonals (wedges) <small>the only place overlap is allowed</small></h2>
+
+  <div class="ew-grid cols-2">
+    <section class="ew-card">
+      <h3>Ending diagonal <span class="ew-tag bear">reversal</span></h3>
+      <svg class="ew-svg" viewBox="0 0 480 220" role="img" aria-label="Falling wedge ending diagonal with lower lows and an upward break">
+        <line class="tl" x1="60" y1="40" x2="390" y2="174"/>
+        <line class="tl" x1="60" y1="120" x2="390" y2="192"/>
+        <polyline class="ln ink" style="stroke-width:2" points="60,40 110,128 160,80 220,152 270,124 320,175 350,158"/>
+        <polyline class="ln bull" points="350,158 450,60" marker-end="url(#ew-arrow-bull)"/>
+        <text class="lbl" x="110" y="150">1</text>
+        <text class="lbl" x="160" y="68">2</text>
+        <text class="lbl" x="220" y="174">3</text>
+        <text class="lbl" x="270" y="112">4</text>
+        <text class="lbl" x="320" y="198">5</text>
+        <text class="note" x="420" y="110">sharp reversal</text>
+      </svg>
+      <ul class="ew-list">
+        <li>Appears in <b>wave 5 or wave C</b>, at the end of a trend</li>
+        <li>3‑3‑3‑3‑3 structure. Wave 4 <b>overlaps</b> wave 1.</li>
+        <li>Both lines slope the same way and converge</li>
+        <li>Often a <b>throw-over</b> (fake break) of the line at wave 5</li>
+        <li>The reversal usually returns quickly to the wedge's start</li>
+      </ul>
+    </section>
+    <section class="ew-card">
+      <h3>Triangle vs wedge: don't mix them up</h3>
+      <div class="ew-table-wrap">
+        <table class="ew-table">
+          <thead><tr><th></th><th>Triangle</th><th>Ending diagonal</th></tr></thead>
+          <tbody>
+            <tr><td>Lines</td><td>Opposite slopes</td><td>Same slope</td></tr>
+            <tr><td>Price</td><td>Sideways</td><td>Still making new lows or highs</td></tr>
+            <tr><td>Position</td><td>Wave 4, B, X</td><td>Wave 5, C</td></tr>
+            <tr><td>Breaks</td><td class="ew-good">With the trend</td><td class="ew-bad">Against the trend</td></tr>
+            <tr><td>Meaning</td><td>Continuation</td><td>Reversal</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Leading diagonal</h4>
+      <p style="font-size:.88rem">This is the rarer cousin: it appears in <b>wave 1 or wave A</b> and is followed by a deep wave 2 (often 61.8–78.6%). It signals a new trend, not the end of one.</p>
+    </section>
+  </div>
+
+  <!-- ============ 9. GUIDELINES ============ -->
+  <h2 class="ew-section-title" id="ew-guidelines">Guidelines <small>not rules, but they're right most of the time</small></h2>
+
+  <div class="ew-grid cols-2">
+    <section class="ew-card">
+      <h3>Channeling</h3>
+      <svg class="ew-svg" viewBox="0 -15 300 205" role="img" aria-label="Elliott channel: line through waves 2 and 4, parallel through wave 3 projects wave 5">
+        <line class="tl" x1="100" y1="150.5" x2="290" y2="46.9"/>
+        <line class="tl" x1="160" y1="66.4" x2="290" y2="-4.5"/>
+        <polyline class="ln bull" points="30,170 80,120 110,145 190,50 220,85 275,10"/>
+        <text class="lbl bull" x="80" y="108">1</text>
+        <text class="lbl bull" x="110" y="166">2</text>
+        <text class="lbl bull" x="182" y="40">3</text>
+        <text class="lbl bull" x="226" y="106">4</text>
+        <text class="lbl bull" x="262" y="4">5</text>
+        <text class="note" x="250" y="100">2–4 line</text>
+        <text class="note" x="160" y="16">parallel through 3</text>
+      </svg>
+      <ul class="ew-list">
+        <li>Draw the line from 2 to 4, then a parallel through 3. <b>Wave 5 often ends near the upper line.</b></li>
+        <li>A <b>throw-over</b> above the channel at wave 5 is an exhaustion sign.</li>
+        <li>A break of the 2–4 line after wave 5 is early confirmation the impulse is over.</li>
+      </ul>
+    </section>
+
+    <section class="ew-card">
+      <h3>Other key guidelines</h3>
+      <ul class="ew-list">
+        <li><b>Extension:</b> one of waves 1, 3 or 5 usually extends. In stocks it's mostly wave 3; in crypto and commodities wave 5 often extends.</li>
+        <li><b>Equality:</b> when wave 3 extends, waves 1 and 5 tend to be equal in length.</li>
+        <li><b>Depth of correction:</b> a correction usually ends in the territory of the <b>previous wave 4 of one lesser degree</b>.</li>
+        <li><b>Truncation:</b> wave 5 failing to exceed wave 3 signals severe weakness, and a sharp reversal follows.</li>
+        <li><b>Volume:</b> it should expand with wave 3 and contract during 2 and 4. Weak volume on 5 warns of the end.</li>
+        <li><b>Momentum:</b> RSI peaks in wave 3. Divergence on 5 or C hints at completion.</li>
+        <li><b>Time:</b> corrections often take 1–2× the time of the wave they correct. Sideways ones take longer.</li>
+      </ul>
+    </section>
+  </div>
+
+  </div>
+
+  <div class="ew-panel" id="ew-p-fib" role="tabpanel" aria-labelledby="ew-t-fib" hidden>
+
+  <!-- ============ 10. FIB CHEAT SHEET ============ -->
+  <h2 class="ew-section-title" id="ew-fib">Fibonacci cheat sheet</h2>
+
+  <div class="ew-grid cols-2">
+    <section class="ew-card">
+      <h3>Retracements <span class="ew-tag">how deep</span></h3>
+      <div class="ew-table-wrap">
+        <table class="ew-table">
+          <thead><tr><th>Wave</th><th>Of</th><th>Common</th><th>Range</th></tr></thead>
+          <tbody>
+            <tr><td>2</td><td>W1</td><td class="ew-fib">0.618</td><td>0.5–0.786</td></tr>
+            <tr><td>4</td><td>W3</td><td class="ew-fib">0.382</td><td>0.236–0.5</td></tr>
+            <tr><td>B (zigzag)</td><td>A</td><td class="ew-fib">0.5–0.618</td><td>0.382–0.786</td></tr>
+            <tr><td>B (flat)</td><td>A</td><td class="ew-fib">1.0–1.236</td><td>0.9–1.382</td></tr>
+            <tr><td>Triangle leg</td><td>Previous leg</td><td class="ew-fib">0.618</td><td>0.5–0.85</td></tr>
+            <tr><td>Whole A‑B‑C</td><td>Impulse</td><td class="ew-fib">0.382–0.5</td><td>0.236–0.618</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="ew-card">
+      <h3>Extensions <span class="ew-tag">how far</span></h3>
+      <div class="ew-table-wrap">
+        <table class="ew-table">
+          <thead><tr><th>Wave</th><th>Relative to</th><th>Common</th><th>Range</th></tr></thead>
+          <tbody>
+            <tr><td>3</td><td>W1 (from W2)</td><td class="ew-fib">1.618</td><td>1.0–2.618</td></tr>
+            <tr><td>5</td><td>W1 (from W4)</td><td class="ew-fib">1.0</td><td>0.618–1.618</td></tr>
+            <tr><td>5</td><td>W1→W3 (from W4)</td><td class="ew-fib">0.618</td><td>0.382–1.0</td></tr>
+            <tr><td>C (zigzag)</td><td>A (from B)</td><td class="ew-fib">1.0</td><td>0.618–1.618</td></tr>
+            <tr><td>C (exp. flat)</td><td>A (from B)</td><td class="ew-fib">1.618</td><td>1.272–2.618</td></tr>
+            <tr><td>Y</td><td>W (from X)</td><td class="ew-fib">1.0</td><td>0.618–1.618</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  </div>
+
+  <div class="ew-panel" id="ew-p-check" role="tabpanel" aria-labelledby="ew-t-check" hidden>
+
+  <!-- ============ 11. CHECKLIST ============ -->
+  <h2 class="ew-section-title" id="ew-checklist">Before every entry</h2>
+
+  <div class="ew-grid cols-2">
+    <section class="ew-card">
+      <h3>Pre-trade checklist</h3>
+      <ul class="ew-check">
+        <li><label><input type="checkbox"><span>Higher-timeframe trend and degree identified</span></label></li>
+        <li><label><input type="checkbox"><span>Count passes all 3 rules</span></label></li>
+        <li><label><input type="checkbox"><span>I know which wave I'm trading (3, 5 or C)</span></label></li>
+        <li><label><input type="checkbox"><span>Correction type classified (zigzag, flat, triangle, combination)</span></label></li>
+        <li><label><input type="checkbox"><span>Target matches that wave and has confluence</span></label></li>
+        <li><label><input type="checkbox"><span>Invalidation level set before entry</span></label></li>
+        <li><label><input type="checkbox"><span>TP1 / TP2 / runner planned</span></label></li>
+        <li><label><input type="checkbox"><span>Not buying inside a triangle or chasing a finished thrust</span></label></li>
+      </ul>
+    </section>
+    <section class="ew-card">
+      <h3>Top 8 counting mistakes</h3>
+      <ol class="ew-list">
+        <li>Counting a 15m pattern without checking the daily.</li>
+        <li>Treating a triangle in a downtrend as a reversal.</li>
+        <li>Buying B's new high in an expanded flat.</li>
+        <li>Calling every bounce wave 1.</li>
+        <li>Using a wave 3 target (1.618) for a wave 5 trade.</li>
+        <li>Forcing a count instead of waiting for structure.</li>
+        <li>Ignoring a broken rule because "the count looked right."</li>
+        <li>Holding one big target instead of scaling out.</li>
+      </ol>
+    </section>
+  </div>
+
+  </div>
+
+  <p class="ew-footer">Downtrend? Flip every diagram upside down: same rules, same ratios. Educational reference only, not financial advice.</p>
+</div>
+
+
+<script>
+(function () {
+  var root = document.querySelector('.ew-guide');
+  if (!root) return;
+  var tabs = Array.prototype.slice.call(root.querySelectorAll('.ew-tab'));
+  var KEY = 'ew-guide-tab';
+
+  function select(tab, focus) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      var panel = root.querySelector('#' + t.getAttribute('aria-controls'));
+      if (panel) panel.hidden = !on;
+    });
+    if (focus) tab.focus();
+    try { localStorage.setItem(KEY, tab.id); } catch (e) {}
+  }
+
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener('click', function () { select(tab, false); });
+    tab.addEventListener('keydown', function (e) {
+      var next = null;
+      if (e.key === 'ArrowRight') next = tabs[(i + 1) % tabs.length];
+      else if (e.key === 'ArrowLeft') next = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === 'Home') next = tabs[0];
+      else if (e.key === 'End') next = tabs[tabs.length - 1];
+      if (next) { e.preventDefault(); select(next, true); }
+    });
+  });
+
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  var start = saved && root.querySelector('.ew-tab#' + saved);
+  select(start || tabs[0], false);
+})();
+</script>
+  </div><!-- /tabElliottwave -->
+
   </div>
   <footer class="note" style="text-align:center;margin-top:28px">Everything you type here (planner, checklist, targets) is stored only in this browser — use <b>Back up</b> to keep a copy.</footer>
 </div>
@@ -2454,7 +3505,7 @@ function cycleFibScenario(dir) {
   }
 }
 
-const TAB_NAMES = ['checklist', 'psychology', 'chartguide', 'setups', 'dailytarget'];
+const TAB_NAMES = ['checklist', 'psychology', 'chartguide', 'setups', 'dailytarget', 'elliottwave'];
 
 // ============================================================================
 // DAILY TARGET
@@ -3298,7 +4349,7 @@ document.addEventListener("click", e => {
 
 
 /* ---------- site navigation ---------- */
-const MTP_PANELS = ["checklist", "psychology", "chartguide", "setups", "dailytarget"];
+const MTP_PANELS = ["checklist", "psychology", "chartguide", "setups", "dailytarget", "elliottwave"];
 const SECTIONS = ["screener", "planner", ...MTP_PANELS];
 function showSection(sec) {
   if (!SECTIONS.includes(sec)) sec = "screener";
